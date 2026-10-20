@@ -1,4 +1,4 @@
-﻿# PCL2Patch
+# PCL2Patch
 
 针对 **Plain Craft Launcher 2**（PCL2）的 IL 补丁工具：解除官方版中 `RestrictMcDownload` 常量带来的下载/安装限制。
 
@@ -18,7 +18,7 @@ Public Const RestrictMcDownload As Boolean = True
 - 资源详情页的整合包版本列表点击行为变成"保存 .mrpack"；
 - `ModpackInstall` 的整个安装分支（CurseForge / HMCL / MMC / MCBBS / Modrinth / 压缩包）被判定不可达而删除，只剩限制 throw。
 
-因此改元数据里的常量没有意义（已内联），必须改 IL。
+因此改元数据里的常量没有意义（已内联），必须改 IL。参考程序集（`RestrictMcDownload = False` 的编译版）已压缩内置，修补时自动读取。
 
 ## 补丁内容（5 处）
 
@@ -26,46 +26,36 @@ Public Const RestrictMcDownload As Boolean = True
 |---|------|------|
 | 1 | `PCL.PageDownloadInstall::LoaderInit` | 把 `"关闭下载"` 占位 `LoaderTask` 的构造替换为 `ldsfld PCL.ModDownload::DlClientListLoader` |
 | 2 | `PCL.PageDownloadModify::LoadInstanceFinished` | `get_CardMinecraft` 后的 `ldc.i4.2`（Collapsed）改为 `ldc.i4.0`（Visible） |
-| 3 | `PCL.ModModpack::ModpackInstall()` | 从参考 exe 搬运完整方法体（41 条指令） |
+| 3 | `PCL.ModModpack::ModpackInstall()` | 从内置参考程序集搬运完整方法体（41 条指令） |
 | 4 | `PCL.PageDownloadResourceDetail::InitializeStackResourceVersions` | 循环里的 `ldftn Save_Click` 改为 `ldftn _Lambda$__R18-5`（转调 `Install_Click`） |
-| 5 | `PCL.ModModpack::ModpackInstall(string,string,string)` | 从参考 exe 搬运完整安装分支（330 条指令，含全部 `InstallPack*` 与正常 `ret`） |
+| 5 | `PCL.ModModpack::ModpackInstall(string,string,string)` | 从内置参考程序集搬运完整安装分支（330 条指令，含全部 `InstallPack*` 与正常 `ret`） |
 
 详细 IL 说明见 [docs/patch-notes.md](docs/patch-notes.md)。
 
 ## 环境要求
 
 - Windows
-- .NET 8 SDK（构建工具用）
 - 官方版 PCL2 exe（2.99.x，`PCL.ModSecret.VersionBranchMain = "Official"`）
-- 参考 exe：**同版本源码**、`RestrictMcDownload = False` 编译出的 PCL2（见下）
+- 构建工具：.NET 8 SDK
 
-### 获取参考 exe
-
-1. `git clone https://github.com/Meloong-Git/PCL`
-2. `git submodule update --init --recursive`
-3. 把 `Plain Craft Launcher 2/Modules/ModSecret.vb` 里的
-   `Public Const RestrictMcDownload As Boolean = True` 改为 `False`
-4. 用 VS（.NET Framework 4.8 目标 + WPF）编译 `Plain Craft Launcher 2.vbproj`
-
-> 参考 exe 与官方 exe 必须来自同一提交/版本，否则方法体引用的成员可能不一致。
+参考程序集已内置在 `PCL2Patch.Core`（`reference.gz`，约 2.5 MB），**不需要用户提供参考 exe**。
 
 ## 构建
 
 ```powershell
-dotnet build src/PCL2Patch.Cli/PCL2Patch.Cli.csproj -c Release
 dotnet build src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release
 ```
 
-或使用脚本（若系统禁止运行脚本）：
+或直接打包成品（若系统禁止运行脚本）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/build.ps1
+powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 ```
 
-产物：
+打包脚本会把成品输出到**仓库外的 `..\dist`**，避免构建产物混入仓库：
 
-- CLI：`src/PCL2Patch.Cli/bin/Release/net8.0/PCL2Patch.exe`
-- GUI：`src/PCL2Patch.Gui/bin/Release/net8.0-windows/PCL2Patch.Gui.exe`
+- `..\dist\PCL2Patch.exe`：GUI，self-contained 单文件（免运行时）
+- `..\dist\SHA256SUMS.txt`
 
 ## GUI
 
@@ -75,29 +65,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
 3. 点击 **开始修补**，下方日志会显示 5 个补丁步骤，完成后弹窗提示。
 
-**不需要参考 exe**：参考程序集（`RestrictMcDownload = False` 的编译版）已压缩内置在 Core 中，
-修补时自动加载。GUI 只依赖 Core，不直接操作 IL（前后端分离）。
-
-CLI 为 `PCL2Patch.Cli.exe`（framework-dependent，需要 .NET 8 Runtime）。
-
-## CLI 使用
-
-```powershell
-PCL2Patch.exe apply <官方exe> <输出exe>
-```
-
-示例：
-
-```powershell
-PCL2Patch.exe apply "PCL2_official.exe" "PCL2_patched.exe"
-```
-
-反汇编检查：
-
-```powershell
-PCL2Patch.exe dump "PCL2_patched.exe" "PCL.ModModpack::ModpackInstall"
-PCL2Patch.exe dump "PCL2_patched.exe" "PageDownload"
-```
+**不需要参考 exe**：参考程序集已压缩内置在 Core 中，修补时自动加载。GUI 只依赖 Core，不直接操作 IL（前后端分离）。
 
 ## 验证
 
@@ -131,21 +99,20 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 | 工作流 | 触发 | 作用 |
 |---|---|---|
-| `build.yml` | `workflow_call`（被下面两个调用） | 构建 CLI（两种）与 GUI 单文件 exe 并上传 artifact |
+| `build.yml` | `workflow_call`（被下面两个调用） | 构建 GUI 单文件 exe 并上传 artifact |
 | `ci.yml`（**Dev Builds**） | 每次 push / PR / 手动 | 每次提交都构建一份构建版，产物在 Actions 的 artifact 中 |
 | `release.yml`（**Release**） | Release 被 publish / 手动 dispatch | 构建后把 exe 挂到对应 Release |
 
 构建产物：
 
 - `PCL2Patch.exe`：GUI，self-contained 单文件（免运行时，打开即用，约 158 MB）
-- `PCL2Patch.Cli.exe`：CLI，framework-dependent 单文件（需 .NET 8 Runtime，约 5 MB）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：
 
 1. `Actions → Dev Builds` 每次 push 自动跑，可在 artifact 下载构建版；
 2. 在 GitHub 上 **Draft a new release**，选择 tag 并 **Publish release**；
-3. `Release` 工作流触发，自动构建并上传上述三个文件；
+3. `Release` 工作流触发，自动构建并上传 `PCL2Patch.exe` 与校验和；
 4. 也可在 `Actions → Release → Run workflow` 为已有 tag 追加附件。
 
 > 本仓库的 Release 只发布**工具本体**（MIT 许可）。补丁后的 `PCL2.exe` 属于
@@ -156,18 +123,16 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 ```
 PCL2Patch/
 ├── .github/workflows/
-│   ├── build.yml        # 可复用构建（CLI + GUI 单文件 exe）
+│   ├── build.yml        # 可复用构建（GUI 单文件 exe）
 │   ├── ci.yml           # Dev Builds：每次提交构建
 │   └── release.yml      # Release：发布时挂附件
 ├── .gitignore
 ├── LICENSE              # MIT
 ├── src/
-│   ├── PCL2Patch.Core/  # 补丁引擎（IL 修改逻辑）
-│   ├── PCL2Patch.Cli/   # 命令行入口
+│   ├── PCL2Patch.Core/  # 补丁引擎（IL 修改逻辑 + 内置参考程序集）
 │   └── PCL2Patch.Gui/   # WPF + Fluent 图形界面
 ├── scripts/
-│   ├── build.ps1            # 构建脚本
-│   └── package-release.ps1  # 本地打包 Release 附件
+│   └── package-release.ps1  # 本地打包（输出到 ..\dist）
 ├── docs/patch-notes.md  # 逐处 IL 修改说明
 └── README.md
 ```
@@ -175,4 +140,3 @@ PCL2Patch/
 ## 许可证
 
 [MIT](LICENSE)
-
