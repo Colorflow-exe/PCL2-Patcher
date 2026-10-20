@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace PCL2Patch.Gui;
+namespace PCL2Patcher.Gui;
 
 public static class Program
 {

@@ -2,7 +2,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace PCL2Patch.Core;
+namespace PCL2Patcher.Core;
 
 /// <summary>
 /// PCL2 限制解除补丁引擎：对官方 PCL2 程序集应用 5 处 IL 修改。
@@ -104,8 +104,8 @@ public static class PatchEngine
 
             var candidates = new[]
             {
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCL2Patch", "backup"),
-                Path.Combine(Path.GetTempPath(), "PCL2Patch", "backup"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCL2Patcher", "backup"),
+                Path.Combine(Path.GetTempPath(), "PCL2Patcher", "backup"),
                 Path.Combine(AppContext.BaseDirectory, "backup")
             };
 
@@ -186,7 +186,7 @@ public static class PatchEngine
     static AssemblyDefinition LoadReferenceAssembly()
     {
         var host = typeof(PatchEngine).Assembly;
-        using var resource = host.GetManifestResourceStream("PCL2Patch.Core.Resources.reference.gz")
+        using var resource = host.GetManifestResourceStream("PCL2Patcher.Core.Resources.reference.gz")
             ?? throw new Exception("找不到内置参考程序集资源");
         using var gz = new GZipStream(resource, CompressionMode.Decompress);
         using var buffer = new MemoryStream();
@@ -239,7 +239,7 @@ public static class PatchEngine
             resolver.AddSearchDirectory(dir);
         }
         foreach (var p in searchPaths) Add(Path.GetDirectoryName(Path.GetFullPath(p)));
-        foreach (var p in (Environment.GetEnvironmentVariable("PCL2PATCH_REFS") ?? "").Split(';')) Add(p.Trim());
+        foreach (var p in (Environment.GetEnvironmentVariable("PCL2PATCHER_REFS") ?? "").Split(';')) Add(p.Trim());
         return new ReaderParameters { AssemblyResolver = resolver };
     }
 

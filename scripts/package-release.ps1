@@ -7,16 +7,16 @@ Push-Location $root
 try {
     New-Item -ItemType Directory -Force -Path $dist | Out-Null
 
-    dotnet build "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release
+    dotnet build "src\PCL2Patcher.Gui\PCL2Patcher.Gui.csproj" -c Release
 
-    $built = Join-Path $root "src\PCL2Patch.Gui\bin\Release\net48\PCL2Patch.exe"
-    Copy-Item $built (Join-Path $dist "PCL2Patch.exe") -Force
-    $hash = (Get-FileHash (Join-Path $dist "PCL2Patch.exe") -Algorithm SHA256).Hash.ToLower()
-    "$hash  PCL2Patch.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA256SUMS.txt")
+    $built = Join-Path $root "src\PCL2Patcher.Gui\bin\Release\net48\PCL2Patcher.exe"
+    Copy-Item $built (Join-Path $dist "PCL2Patcher.exe") -Force
+    $hash = (Get-FileHash (Join-Path $dist "PCL2Patcher.exe") -Algorithm SHA256).Hash.ToLower()
+    "$hash  PCL2Patcher.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA256SUMS.txt")
 
     Write-Host ""
     Write-Host "已生成：$dist"
-    Get-ChildItem (Join-Path $dist "PCL2Patch.exe") | Format-Table Name, Length
+    Get-ChildItem (Join-Path $dist "PCL2Patcher.exe") | Format-Table Name, Length
     Write-Host "SHA256: $hash"
 }
 finally {

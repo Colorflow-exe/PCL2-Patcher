@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 # published: 发布 Release 后自动把构建产物挂上去
 # dispatch: 手动为指定 tag 的 Release 追加产物
@@ -44,12 +44,12 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: PCL2Patch-win-x64
+          name: PCL2Patcher-win-x64
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
-            PCL2Patch.exe
+            PCL2Patcher.exe
             SHA256SUMS.txt

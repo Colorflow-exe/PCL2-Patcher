@@ -3,7 +3,7 @@ using System.Windows;
 using Microsoft.Win32;
 using Wpf.Ui.Appearance;
 
-namespace PCL2Patch.Gui;
+namespace PCL2Patcher.Gui;
 
 public partial class App : Application
 {
@@ -43,7 +43,7 @@ public partial class App : Application
         var mode = "system";
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patch");
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patcher");
             mode = key?.GetValue("Theme") as string ?? "system";
         }
         catch

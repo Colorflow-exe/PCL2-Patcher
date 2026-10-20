@@ -23,20 +23,20 @@ jobs:
 
       # .NET Framework 4.8（Windows 自带）+ Costura.Fody 合并为单 exe（无 dll、不落盘解压）
       - name: Build GUI (.NET Framework 4.8, single exe)
-        run: dotnet build src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release
+        run: dotnet build src/PCL2Patcher.Gui/PCL2Patcher.Gui.csproj -c Release
 
       - name: Package
         shell: pwsh
         run: |
-          Copy-Item src/PCL2Patch.Gui/bin/Release/net48/PCL2Patch.exe PCL2Patch.exe
-          "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe" | Set-Content -Encoding ascii SHA256SUMS.txt
+          Copy-Item src/PCL2Patcher.Gui/bin/Release/net48/PCL2Patcher.exe PCL2Patcher.exe
+          "$((Get-FileHash PCL2Patcher.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patcher.exe" | Set-Content -Encoding ascii SHA256SUMS.txt
           Get-Content SHA256SUMS.txt
-          Get-ChildItem PCL2Patch.exe | Format-Table Name, Length
+          Get-ChildItem PCL2Patcher.exe | Format-Table Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PCL2Patch-win-x64
+          name: PCL2Patcher-win-x64
           path: |
-            PCL2Patch.exe
+            PCL2Patcher.exe
             SHA256SUMS.txt
