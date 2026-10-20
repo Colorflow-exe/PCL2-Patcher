@@ -20,6 +20,7 @@ public static class Loc
     static readonly Dictionary<string, (string Zh, string En)> Strings = new()
     {
         ["Title"] = ("PCL2 限制解除补丁", "PCL2 Restriction Patch"),
+        ["Hint.AdminNoDrag"] = ("以管理员身份运行时，Windows 不允许从资源管理器拖拽文件，请使用“浏览…”按钮选择 PCL2。", "When running as administrator, Windows blocks drag & drop from Explorer. Please use the Browse button."),
         ["Description"] = ("选择官方 PCL2 程序（也可以直接把 exe 拖进窗口），点击“开始修补”生成解除下载/安装限制的副本。", "Select the official PCL2 executable (or drag the exe into the window) and click \"Start\" to create an unrestricted copy."),
         ["Label.Program"] = ("PCL2 程序", "PCL2 program"),
         ["Label.Theme"] = ("主题", "Theme"),

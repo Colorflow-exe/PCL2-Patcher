@@ -11,6 +11,7 @@ namespace PCL2Patch.Gui;
 public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
     private bool _initializing;
+    private static readonly bool IsAdmin = IsRunningAsAdmin();
 
     public MainWindow()
     {
@@ -27,6 +28,20 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         StatusText.Text = Loc.Get("Status.Ready");
 
         _initializing = false;
+    }
+
+    private static bool IsRunningAsAdmin()
+    {
+        try
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     // ---------- 本地化 ----------
@@ -54,6 +69,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         PatchButton.Content = Loc.Get("Button.Start");
         RestoreButton.Content = Loc.Get("Button.Restore");
         OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
+        AdminHint.Text = Loc.Get("Hint.AdminNoDrag");
+        AdminHint.Visibility = IsAdmin ? Visibility.Visible : Visibility.Collapsed;
 
         ((ComboBoxItem)ThemeBox.Items[0]).Content = Loc.Get("Theme.Light");
         ((ComboBoxItem)ThemeBox.Items[1]).Content = Loc.Get("Theme.Dark");
