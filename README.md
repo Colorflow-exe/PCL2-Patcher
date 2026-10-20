@@ -100,25 +100,6 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 - 本仓库不包含任何 PCL2 二进制文件（见 `.gitignore`）。
 - 仅供个人研究/自用，请遵守 PCL 的许可证与所在地法律。
 
-## 目录结构
-
-```
-PCL2Patcher/
-├── .github/workflows/
-│   ├── build.yml        # 可复用构建（GUI 单文件 exe）
-│   ├── ci.yml           # Dev Builds：每次提交构建
-│   └── release.yml      # Release：发布时挂附件
-├── .gitignore
-├── LICENSE              # MIT
-├── src/
-│   ├── PCL2Patcher.Core/  # 补丁引擎（IL 修改逻辑 + 内置参考程序集）
-│   └── PCL2Patcher.Gui/   # WPF + Fluent 图形界面
-├── scripts/
-│   └── package-release.ps1  # 本地打包（输出到 ..\dist）
-├── docs/patch-notes.md  # 逐处 IL 修改说明
-└── README.md
-```
-
 ## 免责声明
 
 - 本项目为个人研究工具，与 PCL2 官方无关。
