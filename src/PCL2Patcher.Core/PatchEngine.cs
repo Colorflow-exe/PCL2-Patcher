@@ -114,6 +114,10 @@ public static class PatchEngine
                 try
                 {
                     Directory.CreateDirectory(dir);
+                    // 探测真实可写性：能建目录不代表能写文件
+                    var probe = Path.Combine(dir, ".write-test");
+                    File.WriteAllText(probe, "x");
+                    File.Delete(probe);
                     _backupDirectory = dir;
                     return dir;
                 }
@@ -419,9 +423,11 @@ public static class PatchEngine
             var res = host.GetManifestResourceNames()
                 .FirstOrDefault(n => n.EndsWith("." + assemblyName + ".dll", StringComparison.OrdinalIgnoreCase));
             if (res is null) return null;
-            using var stream = host.GetManifestResourceStream(res);
+
+            // 保持流存活：Cecil 延迟模式会在后续按需读取，不能立即 Dispose
+            var stream = host.GetManifestResourceStream(res);
             if (stream is null) return null;
-            return AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { ReadingMode = ReadingMode.Immediate });
+            return AssemblyDefinition.ReadAssembly(stream);
         }
 
         AssemblyDefinition Fake(AssemblyNameReference name)
