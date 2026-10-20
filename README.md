@@ -109,13 +109,45 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 - 本仓库不包含任何 PCL2 二进制文件（见 `.gitignore`）。
 - 仅供个人研究/自用，请遵守 PCL 的许可证与所在地法律。
 
+## 发布 Release
+
+`.gitignore` 里的 `*.exe` 只影响 **git 跟踪**；GitHub Release 的附件是单独上传的，
+不受 `.gitignore` 影响。因此：
+
+- 本仓库的 Release 只发布**工具本体**（`PCL2Patch.exe`，MIT 许可）；
+- 补丁后的 `PCL2.exe` 属于《PCL 分发有限许可》范围，不建议随 Release 分发；
+  建议让使用者自备官方 exe，再本地执行 `apply` 生成。
+
+自动发布（打 tag 即触发）：
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+`.github/workflows/release.yml` 会构建并上传：
+
+- `PCL2Patch-win-x64-framework-dependent.zip`（需安装 .NET 8 Runtime，约 1 MB）
+- `PCL2Patch-win-x64-selfcontained.zip`（免运行时，单文件，约 70 MB）
+- `SHA256SUMS.txt`
+
+本地打包同样可用：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
+```
+
 ## 目录结构
 
 ```
 PCL2Patch/
+├── .github/workflows/release.yml  # 打 tag 自动构建并发布 Release
+├── .gitignore
 ├── LICENSE              # MIT
 ├── src/                 # 补丁工具源码 (C# / .NET 8 / Mono.Cecil)
-├── scripts/build.ps1    # 构建脚本
+├── scripts/
+│   ├── build.ps1        # 构建脚本
+│   └── package-release.ps1  # 本地打包 Release 附件
 ├── docs/patch-notes.md  # 逐处 IL 修改说明
 └── README.md
 ```

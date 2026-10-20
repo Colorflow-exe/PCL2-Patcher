@@ -2,6 +2,7 @@
 bin/
 obj/
 build/
+out/
 
 # 二进制文件（PCL2 本体、参考 exe、生成的补丁版）
 *.exe

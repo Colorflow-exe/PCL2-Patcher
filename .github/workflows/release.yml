@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish (framework-dependent)
+        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -o out/framework
+
+      - name: Publish (self-contained, single file)
+        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/selfcontained
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path out/framework/* -DestinationPath PCL2Patch-win-x64-framework-dependent.zip
+          Compress-Archive -Path out/selfcontained/* -DestinationPath PCL2Patch-win-x64-selfcontained.zip
+          $files = Get-ChildItem *.zip
+          $lines = $files | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" }
+          $lines | Set-Content -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PCL2Patch-win-x64
+          path: |
+            *.zip
+            SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            PCL2Patch-win-x64-framework-dependent.zip
+            PCL2Patch-win-x64-selfcontained.zip
+            SHA256SUMS.txt
+          generate_release_notes: true

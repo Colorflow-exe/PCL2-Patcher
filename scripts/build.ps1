@@ -1,4 +1,4 @@
-# 构建补丁工具
+﻿# 构建补丁工具
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Push-Location (Join-Path $root "src")
