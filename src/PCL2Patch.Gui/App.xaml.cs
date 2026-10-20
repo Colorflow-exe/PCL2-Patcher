@@ -21,12 +21,21 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // 在创建窗口之前应用主题，避免首帧使用默认主题、点击后才重绘
         ApplyStartupTheme();
 
+        var autoPatch = FindPatchArgument(e.Args);
         var window = new MainWindow();
+        if (autoPatch != null) window.QueueAutoPatch(autoPatch);
         window.Show();
         window.Activate();
+    }
+
+    private static string? FindPatchArgument(string[] args)
+    {
+        for (var i = 0; i < args.Length - 1; i++)
+            if (string.Equals(args[i], "--patch", StringComparison.OrdinalIgnoreCase))
+                return args[i + 1];
+        return null;
     }
 
     private static void ApplyStartupTheme()

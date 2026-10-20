@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -11,6 +13,7 @@ namespace PCL2Patch.Gui;
 public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
     private bool _initializing;
+    private string? _autoPatchPath;
     private static readonly bool IsAdmin = IsRunningAsAdmin();
 
     public MainWindow()
@@ -25,24 +28,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         BuildSelectors();
         ApplyLocalization();
         LoadTheme();
-        StatusText.Text = Loc.Get("Status.Ready");
 
+        StatusText.Text = Loc.Get("Status.Ready");
         _initializing = false;
     }
 
-    private static bool IsRunningAsAdmin()
-    {
-        try
-        {
-            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-            var principal = new System.Security.Principal.WindowsPrincipal(identity);
-            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+    /// <summary>提权重启后由命令行参数指定要自动修补的文件。</summary>
+    public void QueueAutoPatch(string path) => _autoPatchPath = path;
 
     // ---------- 本地化 ----------
 
@@ -62,6 +54,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         AppTitleBar.Title = Title;
         TitleText.Text = Loc.Get("Title");
         DescText.Text = Loc.Get("Description");
+        AdminHint.Text = Loc.Get("Hint.AdminNoDrag");
+        AdminHint.Visibility = IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         ThemeLabel.Text = Loc.Get("Label.Theme");
         LanguageLabel.Text = Loc.Get("Label.Language");
         ProgramLabel.Text = Loc.Get("Label.Program");
@@ -69,8 +63,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         PatchButton.Content = Loc.Get("Button.Start");
         RestoreButton.Content = Loc.Get("Button.Restore");
         OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
-        AdminHint.Text = Loc.Get("Hint.AdminNoDrag");
-        AdminHint.Visibility = IsAdmin ? Visibility.Visible : Visibility.Collapsed;
 
         ((ComboBoxItem)ThemeBox.Items[0]).Content = Loc.Get("Theme.Light");
         ((ComboBoxItem)ThemeBox.Items[1]).Content = Loc.Get("Theme.Dark");
@@ -112,7 +104,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             // 读取失败时保持默认
         }
 
-        // 主题已在 App.OnStartup 中应用，这里只同步下拉框状态
         ThemeBox.SelectedIndex = index;
 
         LanguageBox.SelectedIndex = Loc.Language switch
@@ -122,7 +113,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             _ => 0
         };
 
-        // 窗口完全加载后再挂系统主题监听，避免首帧抖动
         Loaded += (_, _) =>
         {
             if (ThemeBox.SelectedIndex == 2)
@@ -130,6 +120,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 try { SystemThemeWatcher.Watch(this); } catch { }
             }
             InvalidateVisual();
+
+            if (!string.IsNullOrWhiteSpace(_autoPatchPath))
+            {
+                OfficialBox.Text = _autoPatchPath;
+                _ = PatchAsync(_autoPatchPath!);
+                _autoPatchPath = null;
+            }
         };
     }
 
@@ -161,7 +158,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         SaveThemePreference(index switch { 0 => "light", 1 => "dark", _ => "system" });
 
-        // 主题切换后强制重绑背景资源并重绘，避免窗口背景残留旧主题
         try { SetResourceReference(BackgroundProperty, "ApplicationBackgroundBrush"); } catch { }
         InvalidateVisual();
         UpdateLayout();
@@ -185,8 +181,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             // 保存失败忽略
         }
     }
-
-    // ---------- 补丁 ----------
 
     // ---------- 拖放 ----------
 
@@ -216,6 +210,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         if (data.GetData(DataFormats.FileDrop) is not string[] files) return false;
         return files.Any(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
     }
+
+    // ---------- 补丁 ----------
+
     private void BrowseOfficial_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
@@ -228,8 +225,10 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     }
 
     private async void Patch_Click(object sender, RoutedEventArgs e)
+        => await PatchAsync(OfficialBox.Text.Trim());
+
+    private async Task PatchAsync(string official)
     {
-        var official = OfficialBox.Text.Trim();
         if (!File.Exists(official))
         {
             MessageBox.Show(this, Loc.Get("Msg.SelectProgram"), Loc.Get("Msg.Hint"),
@@ -237,11 +236,25 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        if (IsFileLocked(official))
+        switch (CheckTarget(official))
         {
-            MessageBox.Show(this, Loc.Get("Msg.Busy"), Loc.Get("Msg.Hint"),
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            case TargetState.Occupied:
+                MessageBox.Show(this, Loc.Get("Msg.Occupied"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            case TargetState.NoPermission:
+                if (!IsAdmin)
+                {
+                    if (MessageBox.Show(this, Loc.Get("Msg.ElevateConfirm"), Loc.Get("Msg.Hint"),
+                            MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    {
+                        ElevateAndPatch(official);
+                    }
+                    return;
+                }
+                MessageBox.Show(this, Loc.Get("Msg.NoPermission"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
         }
 
         bool alreadyPatched;
@@ -317,11 +330,25 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        if (IsFileLocked(official))
+        switch (CheckTarget(official))
         {
-            MessageBox.Show(this, Loc.Get("Msg.Busy"), Loc.Get("Msg.Hint"),
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            case TargetState.Occupied:
+                MessageBox.Show(this, Loc.Get("Msg.Occupied"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            case TargetState.NoPermission:
+                if (!IsAdmin)
+                {
+                    if (MessageBox.Show(this, Loc.Get("Msg.ElevateConfirm"), Loc.Get("Msg.Hint"),
+                            MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    {
+                        ElevateAndPatch(official);
+                    }
+                    return;
+                }
+                MessageBox.Show(this, Loc.Get("Msg.NoPermission"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
         }
 
         var backup = PatchEngine.FindBackup(official);
@@ -362,20 +389,73 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
     }
 
-    private static bool IsFileLocked(string path)
+    // ---------- 权限与目标状态 ----------
+
+    private enum TargetState
     {
+        Ready,
+        Occupied,
+        NoPermission
+    }
+
+    private static TargetState CheckTarget(string path)
+    {
+        var shared = false;
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            shared = true;
+        }
+        catch
+        {
+            // 共享读都失败：当作无权限
+        }
+
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            return false;
+            return TargetState.Ready;
         }
         catch (IOException)
         {
-            return true;
+            return shared ? TargetState.Occupied : TargetState.NoPermission;
         }
         catch (UnauthorizedAccessException)
         {
-            return true;
+            return TargetState.NoPermission;
+        }
+    }
+
+    private void ElevateAndPatch(string official)
+    {
+        try
+        {
+            var exe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+            Process.Start(new ProcessStartInfo(exe, $"--patch \"{official}\"")
+            {
+                Verb = "runas",
+                UseShellExecute = true
+            });
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"{Loc.Get("Msg.ElevateFailed")}\n{ex.Message}", Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private static bool IsRunningAsAdmin()
+    {
+        try
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+        catch
+        {
+            return false;
         }
     }
 
