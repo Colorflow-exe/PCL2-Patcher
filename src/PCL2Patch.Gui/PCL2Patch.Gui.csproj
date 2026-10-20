@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,7 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>PCL2Patch</AssemblyName>
-    <RootNamespace>PCL2Patch.Gui</RootNamespace>
+        <RootNamespace>PCL2Patch.Gui</RootNamespace>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <Product>PCL2Patch</Product>
+    <AssemblyTitle>PCL2Patch</AssemblyTitle>
+    <Company>Colorflow-exe</Company>
+    <Copyright>Copyright © 2026 Colorflow-exe</Copyright>
+    <Description>PCL2 下载/安装限制解除补丁工具</Description>
     <StartupObject>PCL2Patch.Gui.Program</StartupObject>
   </PropertyGroup>
 

@@ -1,4 +1,4 @@
-<ui:FluentWindow x:Class="PCL2Patch.Gui.MainWindow"
+﻿<ui:FluentWindow x:Class="PCL2Patch.Gui.MainWindow"
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -14,7 +14,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="PCL2 Patch" ShowMaximize="False" />
+        <ui:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="PCL2 Patch" ShowMaximize="False" />
 
         <Grid Grid.Row="1" Margin="28,12,28,24">
             <Grid.RowDefinitions>

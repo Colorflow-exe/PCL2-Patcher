@@ -4,6 +4,10 @@
 
 不重新编译 PCL2，直接修改 PE 程序集的方法体，所以其余功能与官方版本完全一致。
 
+当前版本：**v1.0.0**
+
+![GUI 界面](docs/screenshot.png)
+
 ## 背景
 
 PCL2 源码 `Modules/ModSecret.vb` 中：
@@ -139,6 +143,14 @@ PCL2Patch/
 ├── docs/patch-notes.md  # 逐处 IL 修改说明
 └── README.md
 ```
+
+## 免责声明
+
+- 本项目为个人研究工具，与 PCL2 官方无关。
+- 参考程序集来自 PCL2 开源项目（`RestrictMcDownload = False` 的编译版），仅用于补丁时搬运方法体；
+  PCL2 本体遵循其《PCL 分发有限许可》。
+- 本仓库与 Release 只分发补丁工具本身，不附带任何 PCL2 二进制。
+- 请勿将本工具用于商业用途或违反所在地法律法规的场景。
 
 ## 许可证
 

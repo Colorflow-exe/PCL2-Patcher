@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -12,6 +12,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     public MainWindow()
     {
         InitializeComponent();
+        Title = $"PCL2Patch v{typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}";
+        AppTitleBar.Title = Title;
         LoadTheme();
     }
 
