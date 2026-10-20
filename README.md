@@ -6,7 +6,6 @@
 
 当前版本：**v0.1.0**
 
-![GUI 界面](docs/screenshot.png)
 
 ## 背景
 
@@ -75,7 +74,7 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 点击 **开始修补**，下方日志会显示 5 个补丁步骤；
-3. 修补完成后，原程序会被替换为补丁版（**文件名不变**），原版自动备份为 `Plain Craft Launcher 2_backup.exe`（若已存在则追加 `_1`、`_2`…）。
+3. 修补完成后，原程序会被替换为补丁版（**文件名不变**），原版自动备份到工具数据目录。
 4. 需要还原时，点 **恢复原版**（原版备份保存在工具数据目录，不在 PCL2 目录产生额外文件）。
 
 ## 验证
@@ -100,34 +99,6 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 - 修改后的 exe 无数字签名变更（程序集本身未签名）。
 - 本仓库不包含任何 PCL2 二进制文件（见 `.gitignore`）。
 - 仅供个人研究/自用，请遵守 PCL 的许可证与所在地法律。
-
-## 发布 Release
-
-`.gitignore` 里的 `*.exe` 只影响 **git 跟踪**；GitHub Release 的附件是单独上传的，
-不受 `.gitignore` 影响。
-
-工作流按「构建 / 发布」分离（参考 Carpet-Igny-Addition 的组织方式）：
-
-| 工作流 | 触发 | 作用 |
-|---|---|---|
-| `build.yml` | `workflow_call`（被下面两个调用） | 构建 GUI 单文件 exe 并上传 artifact |
-| `ci.yml`（**Dev Builds**） | 每次 push / PR / 手动 | 每次提交都构建一份构建版，产物在 Actions 的 artifact 中 |
-| `release.yml`（**Release**） | Release 被 publish / 手动 dispatch | 构建后把 exe 挂到对应 Release |
-
-构建产物：
-
-- `PCL2Patcher.exe`：GUI，单文件（.NET Framework 4.8，免安装，双击即开）
-- `SHA256SUMS.txt`
-
-发布流程（在 GitHub 页面操作即可）：
-
-1. `Actions → Dev Builds` 每次 push 自动跑，可在 artifact 下载构建版；
-2. 在 GitHub 上 **Draft a new release**，选择 tag 并 **Publish release**；
-3. `Release` 工作流触发，自动构建并上传 `PCL2Patcher.exe` 与校验和；
-4. 也可在 `Actions → Release → Run workflow` 为已有 tag 追加附件。
-
-> 本仓库的 Release 只发布**工具本体**（MIT 许可）。补丁后的 `PCL2.exe` 属于
-> 《PCL 分发有限许可》范围，不建议随 Release 分发。
 
 ## 目录结构
 
