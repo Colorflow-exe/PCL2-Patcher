@@ -10,6 +10,6 @@
   - 整合包版本列表点击恢复为“安装”
   - 搬运 `ModpackInstall()` 完整选文件流程
   - 搬运 `ModpackInstall(文件)` 完整安装分支（330 条指令）
-- GUI：WPF + Fluent（WPF-UI），支持浅色 / 深色 / 跟随系统主题
+- GUI：WPF + Fluent（WPF-UI），支持浅色 / 深色 / 跟随系统主题`n- i18n：中 / 英双语（自动跟随系统，可手动切换）`n- 单文件交付：.NET Framework 4.8 + Costura 合并，不产生 dll、不落盘解压
 - 内置参考程序集（gzip 压缩），无需用户提供参考 exe
 - 单文件 self-contained 发布，免安装 .NET 运行时

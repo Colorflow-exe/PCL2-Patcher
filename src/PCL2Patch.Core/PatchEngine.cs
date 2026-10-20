@@ -62,8 +62,9 @@ public static class PatchEngine
             return;
         }
 
-        var typeName = target.Split("::")[0];
-        var methodPart = target.Split("::")[1];
+        var parts = target.Split(new[] { "::" }, StringSplitOptions.None);
+        var typeName = parts[0];
+        var methodPart = parts[1];
         foreach (var type in m.Types.SelectMany(Flatten).Where(t => t.FullName == typeName))
             foreach (var method in type.Methods.Where(x => x.HasBody && x.FullName.Contains(methodPart)))
             {

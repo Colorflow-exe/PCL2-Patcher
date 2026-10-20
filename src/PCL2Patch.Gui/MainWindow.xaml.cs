@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -9,12 +10,72 @@ namespace PCL2Patch.Gui;
 
 public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
+    private bool _initializing;
+
     public MainWindow()
     {
+        _initializing = true;
         InitializeComponent();
+
         Title = $"PCL2Patch v{typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}";
         AppTitleBar.Title = Title;
+
+        Loc.Load();
+        BuildSelectors();
+        ApplyLocalization();
         LoadTheme();
+
+        _initializing = false;
+    }
+
+    // ---------- 本地化 ----------
+
+    private void BuildSelectors()
+    {
+        ThemeBox.Items.Clear();
+        LanguageBox.Items.Clear();
+        for (var i = 0; i < 3; i++)
+        {
+            ThemeBox.Items.Add(new ComboBoxItem());
+            LanguageBox.Items.Add(new ComboBoxItem());
+        }
+    }
+
+    private void ApplyLocalization()
+    {
+        AppTitleBar.Title = Title;
+        TitleText.Text = Loc.Get("Title");
+        DescText.Text = Loc.Get("Description");
+        ThemeLabel.Text = Loc.Get("Label.Theme");
+        LanguageLabel.Text = Loc.Get("Label.Language");
+        ProgramLabel.Text = Loc.Get("Label.Program");
+        OutputLabel.Text = Loc.Get("Label.Output");
+        BrowseProgramButton.Content = Loc.Get("Button.Browse");
+        BrowseOutputButton.Content = Loc.Get("Button.Browse");
+        PatchButton.Content = Loc.Get("Button.Start");
+        OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
+        OutputBox.PlaceholderText = Loc.Get("Placeholder.Output");
+        StatusText.Text = Loc.Get("Status.Ready");
+
+        ((ComboBoxItem)ThemeBox.Items[0]).Content = Loc.Get("Theme.Light");
+        ((ComboBoxItem)ThemeBox.Items[1]).Content = Loc.Get("Theme.Dark");
+        ((ComboBoxItem)ThemeBox.Items[2]).Content = Loc.Get("Theme.System");
+
+        ((ComboBoxItem)LanguageBox.Items[0]).Content = Loc.Get("Lang.Auto");
+        ((ComboBoxItem)LanguageBox.Items[1]).Content = "中文";
+        ((ComboBoxItem)LanguageBox.Items[2]).Content = "English";
+    }
+
+    private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_initializing || LanguageBox.SelectedIndex < 0) return;
+        Loc.Set(LanguageBox.SelectedIndex switch
+        {
+            1 => AppLanguage.Chinese,
+            2 => AppLanguage.English,
+            _ => AppLanguage.Auto
+        });
+        ApplyLocalization();
     }
 
     // ---------- 主题 ----------
@@ -38,12 +99,20 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         ThemeBox.SelectedIndex = index;
         ApplyTheme(index);
+
+        var languageIndex = Loc.Language switch
+        {
+            AppLanguage.Chinese => 1,
+            AppLanguage.English => 2,
+            _ => 0
+        };
+        LanguageBox.SelectedIndex = languageIndex;
     }
 
     private void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ThemeBox.SelectedIndex >= 0)
-            ApplyTheme(ThemeBox.SelectedIndex);
+        if (_initializing || ThemeBox.SelectedIndex < 0) return;
+        ApplyTheme(ThemeBox.SelectedIndex);
     }
 
     private void ApplyTheme(int index)
@@ -52,7 +121,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         {
             if (index == 2)
             {
-                // 跟随系统：监听系统主题变化
                 SystemThemeWatcher.Watch(this);
                 ApplicationThemeManager.ApplySystemTheme();
             }
@@ -67,26 +135,26 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             // 主题切换失败不影响主流程
         }
 
-        try
-        {
-            SaveThemePreference(index switch { 0 => "light", 1 => "dark", _ => "system" });
-        }
-        catch
-        {
-            // 保存失败忽略
-        }
+        SaveThemePreference(index switch { 0 => "light", 1 => "dark", _ => "system" });
     }
 
     private static string ReadThemePreference()
     {
-        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patch");
+        using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patch");
         return key?.GetValue("Theme") as string ?? "system";
     }
 
     private static void SaveThemePreference(string value)
     {
-        using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\PCL2Patch");
-        key?.SetValue("Theme", value);
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\PCL2Patch");
+            key?.SetValue("Theme", value);
+        }
+        catch
+        {
+            // 保存失败忽略
+        }
     }
 
     // ---------- 补丁 ----------
@@ -95,8 +163,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         var dialog = new OpenFileDialog
         {
-            Title = "选择官方 PCL2 程序",
-            Filter = "PCL2 程序 (*.exe)|*.exe|所有文件 (*.*)|*.*"
+            Title = Loc.Get("Label.Program"),
+            Filter = "PCL2 (*.exe)|*.exe|*|*.*"
         };
         if (dialog.ShowDialog(this) != true) return;
 
@@ -110,8 +178,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         var seed = string.IsNullOrWhiteSpace(OfficialBox.Text) ? "PCL2.exe" : OfficialBox.Text;
         var dialog = new SaveFileDialog
         {
-            Title = "选择输出路径",
-            Filter = "PCL2 程序 (*.exe)|*.exe",
+            Title = Loc.Get("Label.Output"),
+            Filter = "PCL2 (*.exe)|*.exe",
             FileName = Path.GetFileName(SuggestOutput(seed))
         };
         if (dialog.ShowDialog(this) == true)
@@ -123,7 +191,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         var official = OfficialBox.Text.Trim();
         if (!File.Exists(official))
         {
-            MessageBox.Show(this, "请选择官方 PCL2 程序。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, Loc.Get("Msg.SelectProgram"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -132,24 +201,26 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         PatchButton.IsEnabled = false;
         LogBox.Clear();
-        StatusText.Text = "正在修补…";
-        AppendLog($"官方程序：{official}");
-        AppendLog($"输出路径：{output}");
+        StatusText.Text = Loc.Get("Status.Patching");
+        AppendLog($"{Loc.Get("Log.Program")}: {official}");
+        AppendLog($"{Loc.Get("Log.Output")}: {output}");
         AppendLog(string.Empty);
 
         try
         {
             await Task.Run(() => PatchEngine.Apply(official, output, AppendLog));
-            StatusText.Text = "完成";
+            StatusText.Text = Loc.Get("Status.Done");
             AppendLog(string.Empty);
-            AppendLog($"修补完成：{output}");
-            MessageBox.Show(this, $"修补完成：\n{output}", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            AppendLog($"{Loc.Get("Log.Done")}: {output}");
+            MessageBox.Show(this, $"{Loc.Get("Msg.Success")}\n{output}", Loc.Get("Msg.SuccessTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            StatusText.Text = "失败";
-            AppendLog($"失败：{ex.Message}");
-            MessageBox.Show(this, $"修补失败：\n{ex.Message}", "失败", MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusText.Text = Loc.Get("Status.Failed");
+            AppendLog($"{Loc.Get("Log.Failed")}: {ex.Message}");
+            MessageBox.Show(this, $"{Loc.Get("Msg.Failed")}\n{ex.Message}", Loc.Get("Msg.FailedTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {

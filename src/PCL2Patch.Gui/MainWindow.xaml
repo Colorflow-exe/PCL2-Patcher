@@ -2,8 +2,8 @@
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-                 Title="PCL2 Patch"
-                 Width="820" Height="600"
+                 Title="PCL2Patch"
+                 Width="840" Height="600"
                  MinWidth="720" MinHeight="520"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
@@ -14,7 +14,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="PCL2 Patch" ShowMaximize="False" />
+        <ui:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="PCL2Patch" ShowMaximize="False" />
 
         <Grid Grid.Row="1" Margin="28,12,28,24">
             <Grid.RowDefinitions>
@@ -33,19 +33,16 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" />
-                    <TextBlock Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               Text="选择官方 PCL2 程序，点击“开始修补”生成解除下载/安装限制的副本（参考数据已内置，无需其他文件）。"
+                    <TextBlock x:Name="TitleText" Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock x:Name="DescText" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,0,0,0">
-                    <TextBlock Text="主题" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <ComboBox x:Name="ThemeBox" Width="130" SelectionChanged="ThemeBox_SelectionChanged">
-                        <ComboBoxItem Content="浅色" />
-                        <ComboBoxItem Content="深色" />
-                        <ComboBoxItem Content="跟随系统" />
-                    </ComboBox>
+                    <TextBlock x:Name="ThemeLabel" Text="主题" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="ThemeBox" Width="118" SelectionChanged="ThemeBox_SelectionChanged" />
+                    <TextBlock x:Name="LanguageLabel" Text="语言" VerticalAlignment="Center" Margin="12,0,8,0" />
+                    <ComboBox x:Name="LanguageBox" Width="96" SelectionChanged="LanguageBox_SelectionChanged" />
                 </StackPanel>
             </Grid>
 
@@ -55,10 +52,9 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="PCL2 程序" VerticalAlignment="Center" />
-                <ui:TextBox x:Name="OfficialBox" Grid.Column="1" Margin="0,0,8,0"
-                            PlaceholderText="选择 Plain Craft Launcher 2.exe" />
-                <ui:Button Grid.Column="2" Content="浏览…" Click="BrowseOfficial_Click" />
+                <TextBlock x:Name="ProgramLabel" Grid.Column="0" Text="PCL2 程序" VerticalAlignment="Center" />
+                <ui:TextBox x:Name="OfficialBox" Grid.Column="1" Margin="0,0,8,0" />
+                <ui:Button x:Name="BrowseProgramButton" Grid.Column="2" Content="浏览…" Click="BrowseOfficial_Click" />
             </Grid>
 
             <Grid Grid.Row="2" Margin="0,0,0,16">
@@ -67,10 +63,9 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="输出路径" VerticalAlignment="Center" />
-                <ui:TextBox x:Name="OutputBox" Grid.Column="1" Margin="0,0,8,0"
-                            PlaceholderText="默认在 PCL2 同目录生成 *_patched.exe" />
-                <ui:Button Grid.Column="2" Content="浏览…" Click="BrowseOutput_Click" />
+                <TextBlock x:Name="OutputLabel" Grid.Column="0" Text="输出路径" VerticalAlignment="Center" />
+                <ui:TextBox x:Name="OutputBox" Grid.Column="1" Margin="0,0,8,0" />
+                <ui:Button x:Name="BrowseOutputButton" Grid.Column="2" Content="浏览…" Click="BrowseOutput_Click" />
             </Grid>
 
             <ui:Button x:Name="PatchButton" Grid.Row="3" Content="开始修补" Height="38"

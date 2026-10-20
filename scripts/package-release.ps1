@@ -1,16 +1,16 @@
 ﻿# 构建补丁工具（Core + GUI），成品输出到仓库外的 ..\dist
-# 发布为 framework-dependent 单文件 exe（需 .NET 8 Desktop Runtime），双击即开。
+# GUI 目标 .NET Framework 4.8（Windows 自带），Costura 合并为单 exe（无 dll、不落盘解压）。
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $dist = Join-Path $root "..\dist"
 Push-Location $root
 try {
     New-Item -ItemType Directory -Force -Path $dist | Out-Null
-    $stage = Join-Path $dist "_build"
 
-    dotnet publish "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o $stage
+    dotnet build "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release
 
-    Copy-Item (Join-Path $stage "PCL2Patch.exe") (Join-Path $dist "PCL2Patch.exe") -Force
+    $built = Join-Path $root "src\PCL2Patch.Gui\bin\Release\net48\PCL2Patch.exe"
+    Copy-Item $built (Join-Path $dist "PCL2Patch.exe") -Force
     $hash = (Get-FileHash (Join-Path $dist "PCL2Patch.exe") -Algorithm SHA256).Hash.ToLower()
     "$hash  PCL2Patch.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA256SUMS.txt")
 

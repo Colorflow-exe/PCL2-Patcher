@@ -21,13 +21,14 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Publish GUI (framework-dependent, single file)
-        run: dotnet publish src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o out/gui
+      # .NET Framework 4.8（Windows 自带）+ Costura.Fody 合并为单 exe（无 dll、不落盘解压）
+      - name: Build GUI (.NET Framework 4.8, single exe)
+        run: dotnet build src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release
 
       - name: Package
         shell: pwsh
         run: |
-          Copy-Item out/gui/PCL2Patch.exe PCL2Patch.exe
+          Copy-Item src/PCL2Patch.Gui/bin/Release/net48/PCL2Patch.exe PCL2Patch.exe
           "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe" | Set-Content -Encoding ascii SHA256SUMS.txt
           Get-Content SHA256SUMS.txt
           Get-ChildItem PCL2Patch.exe | Format-Table Name, Length

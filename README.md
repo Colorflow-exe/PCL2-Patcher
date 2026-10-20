@@ -40,7 +40,7 @@ Public Const RestrictMcDownload As Boolean = True
 
 - Windows
 - 官方版 PCL2 exe（2.99.x，`PCL.ModSecret.VersionBranchMain = "Official"`）
-- 构建工具：.NET 8 SDK
+- 构建工具：.NET 8 SDK；运行环境：.NET Framework 4.8（Windows 10/11 自带）
 
 参考程序集已内置在 `PCL2Patch.Core`（`reference.gz`，约 2.5 MB），**不需要用户提供参考 exe**。
 
@@ -58,17 +58,21 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 
 打包脚本会把成品输出到**仓库外的 `..\dist`**，避免构建产物混入仓库：
 
-- `..\dist\PCL2Patch.exe`：单文件（需 .NET 8 Desktop Runtime，双击即开）
+- `..\dist\PCL2Patch.exe`：单文件（.NET Framework 4.8，免安装，双击即开）
 - `..\dist\SHA256SUMS.txt`
 
 ## GUI
 
-`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，单文件（约 12 MB），双击即开。
+`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，**单文件**（约 6.8 MB）：
 
-需要 **.NET 8 Desktop Runtime**（Windows 10/11 多数环境已安装；未安装可从
-<https://dotnet.microsoft.com/download/dotnet/8.0> 下载安装）。
+- 目标框架 **.NET Framework 4.8**（Windows 10/11 系统自带，无需安装任何运行时）；
+- 依赖通过 **Costura.Fody** 合并进 exe，**不产生 dll、不落盘解压**；
+- 主题与语言选择保存在注册表 `HKCU\Software\PCL2Patch`，程序目录不生成任何文件。
 
-> 主题选择保存在注册表 `HKCU\Software\PCL2Patch`，不会在程序目录生成任何文件。
+支持 **中 / 英双语**（i18n）：
+
+- 语言：自动（跟随系统）/ 中文 / English；
+- 切换后界面文案立即更新，选择会被记住。
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
@@ -114,7 +118,7 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 构建产物：
 
-- `PCL2Patch.exe`：GUI，单文件（需 .NET 8 Desktop Runtime，双击即开）
+- `PCL2Patch.exe`：GUI，单文件（.NET Framework 4.8，免安装，双击即开）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：
