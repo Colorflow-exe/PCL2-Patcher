@@ -26,12 +26,28 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,18">
-                <TextBlock Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" />
-                <TextBlock Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           Text="选择官方 PCL2 程序，点击“开始修补”生成解除下载/安装限制的副本（参考数据已内置，无需其他文件）。"
-                           TextWrapping="Wrap" />
-            </StackPanel>
+            <Grid Grid.Row="0" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="选择官方 PCL2 程序，点击“开始修补”生成解除下载/安装限制的副本（参考数据已内置，无需其他文件）。"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,0,0,0">
+                    <TextBlock Text="主题" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox x:Name="ThemeBox" Width="130" SelectionChanged="ThemeBox_SelectionChanged">
+                        <ComboBoxItem Content="浅色" />
+                        <ComboBoxItem Content="深色" />
+                        <ComboBoxItem Content="跟随系统" />
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
 
             <Grid Grid.Row="1" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>

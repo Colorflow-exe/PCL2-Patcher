@@ -1,7 +1,9 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Win32;
 using PCL2Patch.Core;
+using Wpf.Ui.Appearance;
 
 namespace PCL2Patch.Gui;
 
@@ -10,7 +12,92 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     public MainWindow()
     {
         InitializeComponent();
+        LoadTheme();
     }
+
+    // ---------- 主题 ----------
+
+    private void LoadTheme()
+    {
+        var index = 2; // 默认跟随系统
+        try
+        {
+            var path = ThemeSettingsPath;
+            if (File.Exists(path))
+            {
+                index = File.ReadAllText(path).Trim().ToLowerInvariant() switch
+                {
+                    "light" => 0,
+                    "dark" => 1,
+                    _ => 2
+                };
+            }
+        }
+        catch
+        {
+            // 读取失败时保持默认
+        }
+
+        ThemeBox.SelectedIndex = index;
+        ApplyTheme(index);
+    }
+
+    private void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemeBox.SelectedIndex >= 0)
+            ApplyTheme(ThemeBox.SelectedIndex);
+    }
+
+    private void ApplyTheme(int index)
+    {
+        try
+        {
+            if (index == 2)
+            {
+                // 跟随系统：监听系统主题变化
+                SystemThemeWatcher.Watch(this);
+                ApplicationThemeManager.ApplySystemTheme();
+            }
+            else
+            {
+                SystemThemeWatcher.UnWatch(this);
+                ApplicationThemeManager.Apply(index == 0 ? ApplicationTheme.Light : ApplicationTheme.Dark);
+            }
+        }
+        catch
+        {
+            // 主题切换失败不影响主流程
+        }
+
+        try
+        {
+            File.WriteAllText(ThemeSettingsPath, index switch { 0 => "light", 1 => "dark", _ => "system" });
+        }
+        catch
+        {
+            // 保存失败忽略
+        }
+    }
+
+    private static string ThemeSettingsPath
+    {
+        get
+        {
+            // 优先 exe 同目录（便携），失败回退到临时目录
+            var exeDir = Path.Combine(AppContext.BaseDirectory, "theme.txt");
+            try
+            {
+                File.AppendAllText(exeDir, string.Empty);
+                return exeDir;
+            }
+            catch
+            {
+                return Path.Combine(Path.GetTempPath(), "PCL2Patch-theme.txt");
+            }
+        }
+    }
+
+    // ---------- 补丁 ----------
 
     private void BrowseOfficial_Click(object sender, RoutedEventArgs e)
     {
