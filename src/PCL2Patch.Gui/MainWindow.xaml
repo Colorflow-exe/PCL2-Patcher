@@ -38,9 +38,15 @@
                     <TextBlock x:Name="TitleText" Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     <TextBlock x:Name="DescText" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap" />
-                    <TextBlock x:Name="AdminHint" Margin="0,4,0,0" Visibility="Collapsed"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               TextWrapping="Wrap" />
+                    <Expander x:Name="AdminHintExpander" Margin="0,2,0,0" Visibility="Collapsed"
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                        <Expander.Header>
+                            <TextBlock x:Name="AdminHintHeader" Text="提示" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Expander.Header>
+                        <TextBlock x:Name="AdminHint" Margin="0,4,0,0" TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Expander>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,0,0,0">

@@ -55,7 +55,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         TitleText.Text = Loc.Get("Title");
         DescText.Text = Loc.Get("Description");
         AdminHint.Text = Loc.Get("Hint.AdminNoDrag");
-        AdminHint.Visibility = IsAdmin ? Visibility.Visible : Visibility.Collapsed;
+        AdminHintHeader.Text = Loc.Get("Msg.Hint");
+        AdminHintExpander.Visibility = IsAdmin ? Visibility.Visible : Visibility.Collapsed;
         ThemeLabel.Text = Loc.Get("Label.Theme");
         LanguageLabel.Text = Loc.Get("Label.Language");
         ProgramLabel.Text = Loc.Get("Label.Program");
