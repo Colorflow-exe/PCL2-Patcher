@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>PCL2Patch.Gui</AssemblyName>
+    <AssemblyName>PCL2Patch</AssemblyName>
     <RootNamespace>PCL2Patch.Gui</RootNamespace>
   </PropertyGroup>
 

@@ -52,6 +52,5 @@ jobs:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
             PCL2Patch.exe
-            PCL2Patch-selfcontained.exe
-            PCL2Patch.Gui.exe
+            PCL2Patch.Cli.exe
             SHA256SUMS.txt

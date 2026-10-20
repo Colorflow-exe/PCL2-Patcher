@@ -1,4 +1,4 @@
-# PCL2Patch
+﻿# PCL2Patch
 
 针对 **Plain Craft Launcher 2**（PCL2）的 IL 补丁工具：解除官方版中 `RestrictMcDownload` 常量带来的下载/安装限制。
 
@@ -69,7 +69,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 
 ## GUI
 
-`PCL2Patch.Gui.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面：
+`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，**免运行时**（self-contained 单文件，打开即用，约 158 MB）。
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
@@ -78,7 +78,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 **不需要参考 exe**：参考程序集（`RestrictMcDownload = False` 的编译版）已压缩内置在 Core 中，
 修补时自动加载。GUI 只依赖 Core，不直接操作 IL（前后端分离）。
 
-GUI 需要 .NET 8 Desktop Runtime（framework-dependent 单文件，约 3 MB，含内置参考数据）。
+CLI 为 `PCL2Patch.Cli.exe`（framework-dependent，需要 .NET 8 Runtime）。
 
 ## CLI 使用
 
@@ -137,9 +137,8 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 构建产物：
 
-- `PCL2Patch.exe`：CLI，framework-dependent 单文件（需 .NET 8 Runtime，约 665 KB）
-- `PCL2Patch-selfcontained.exe`：CLI，self-contained 单文件（免运行时，约 65 MB）
-- `PCL2Patch.Gui.exe`：GUI，framework-dependent 单文件（需 .NET 8 Desktop Runtime，约 680 KB）
+- `PCL2Patch.exe`：GUI，self-contained 单文件（免运行时，打开即用，约 158 MB）
+- `PCL2Patch.Cli.exe`：CLI，framework-dependent 单文件（需 .NET 8 Runtime，约 5 MB）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：
@@ -165,7 +164,7 @@ PCL2Patch/
 ├── src/
 │   ├── PCL2Patch.Core/  # 补丁引擎（IL 修改逻辑）
 │   ├── PCL2Patch.Cli/   # 命令行入口
-│   └── PCL2Patch.Gui/   # WinForms 图形界面
+│   └── PCL2Patch.Gui/   # WPF + Fluent 图形界面
 ├── scripts/
 │   ├── build.ps1            # 构建脚本
 │   └── package-release.ps1  # 本地打包 Release 附件

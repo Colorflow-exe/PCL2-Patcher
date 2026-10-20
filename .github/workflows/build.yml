@@ -22,24 +22,19 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Publish CLI (framework-dependent, single file)
-        run: dotnet publish src/PCL2Patch.Cli/PCL2Patch.Cli.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o out/fd
+        run: dotnet publish src/PCL2Patch.Cli/PCL2Patch.Cli.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o out/cli
 
-      - name: Publish CLI (self-contained, single file)
-        run: dotnet publish src/PCL2Patch.Cli/PCL2Patch.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/sc
-
-      - name: Publish GUI (framework-dependent, single file)
-        run: dotnet publish src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o out/gui
+      - name: Publish GUI (self-contained, single file)
+        run: dotnet publish src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/gui
 
       - name: Package
         shell: pwsh
         run: |
-          Copy-Item out/fd/PCL2Patch.exe PCL2Patch.exe
-          Copy-Item out/sc/PCL2Patch.exe PCL2Patch-selfcontained.exe
-          Copy-Item out/gui/PCL2Patch.Gui.exe PCL2Patch.Gui.exe
+          Copy-Item out/cli/PCL2Patch.Cli.exe PCL2Patch.Cli.exe
+          Copy-Item out/gui/PCL2Patch.exe PCL2Patch.exe
           $lines = @(
             "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe",
-            "$((Get-FileHash PCL2Patch-selfcontained.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch-selfcontained.exe",
-            "$((Get-FileHash PCL2Patch.Gui.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.Gui.exe"
+            "$((Get-FileHash PCL2Patch.Cli.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.Cli.exe"
           )
           $lines | Set-Content -Encoding ascii SHA256SUMS.txt
           Get-Content SHA256SUMS.txt
@@ -51,6 +46,5 @@ jobs:
           name: PCL2Patch-win-x64
           path: |
             PCL2Patch.exe
-            PCL2Patch-selfcontained.exe
-            PCL2Patch.Gui.exe
+            PCL2Patch.Cli.exe
             SHA256SUMS.txt
