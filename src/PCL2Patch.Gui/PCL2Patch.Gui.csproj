@@ -8,10 +8,10 @@
     <Nullable>enable</Nullable>
     <AssemblyName>PCL2Patch</AssemblyName>
         <RootNamespace>PCL2Patch.Gui</RootNamespace>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
     <Product>PCL2Patch</Product>
     <AssemblyTitle>PCL2Patch</AssemblyTitle>
     <Company>Colorflow-exe</Company>
