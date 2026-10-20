@@ -53,4 +53,5 @@ jobs:
           files: |
             PCL2Patch.exe
             PCL2Patch-selfcontained.exe
+            PCL2Patch.Gui.exe
             SHA256SUMS.txt

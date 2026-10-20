@@ -52,8 +52,8 @@ Public Const RestrictMcDownload As Boolean = True
 ## 构建
 
 ```powershell
-cd src
-dotnet build -c Release
+dotnet build src/PCL2Patch.Cli/PCL2Patch.Cli.csproj -c Release
+dotnet build src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release
 ```
 
 或使用脚本（若系统禁止运行脚本）：
@@ -62,21 +62,34 @@ dotnet build -c Release
 powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 ```
 
-产物：`src/bin/Release/net8.0/PCL2Patch.exe`
+产物：
 
-## 使用
+- CLI：`src/PCL2Patch.Cli/bin/Release/net8.0/PCL2Patch.exe`
+- GUI：`src/PCL2Patch.Gui/bin/Release/net8.0-windows/PCL2Patch.Gui.exe`
+
+## GUI
+
+`PCL2Patch.Gui.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面：
+
+1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
+2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
+3. 点击 **开始修补**，下方日志会显示 5 个补丁步骤，完成后弹窗提示。
+
+**不需要参考 exe**：参考程序集（`RestrictMcDownload = False` 的编译版）已压缩内置在 Core 中，
+修补时自动加载。GUI 只依赖 Core，不直接操作 IL（前后端分离）。
+
+GUI 需要 .NET 8 Desktop Runtime（framework-dependent 单文件，约 3 MB，含内置参考数据）。
+
+## CLI 使用
 
 ```powershell
-# 依赖查找路径（可选；默认使用 exe 所在目录）
-$env:PCL2PATCH_REFS = "C:\refs;D:\PCL\PCLCS\bin"
-
-PCL2Patch.exe apply <官方exe> <参考exe> <输出exe>
+PCL2Patch.exe apply <官方exe> <输出exe>
 ```
 
 示例：
 
 ```powershell
-PCL2Patch.exe apply "PCL2_official.exe" "PCL2_unrestricted.exe" "PCL2_patched.exe"
+PCL2Patch.exe apply "PCL2_official.exe" "PCL2_patched.exe"
 ```
 
 反汇编检查：
@@ -118,14 +131,15 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 | 工作流 | 触发 | 作用 |
 |---|---|---|
-| `build.yml` | `workflow_call`（被下面两个调用） | 发布两个单文件 exe 并上传 artifact |
+| `build.yml` | `workflow_call`（被下面两个调用） | 构建 CLI（两种）与 GUI 单文件 exe 并上传 artifact |
 | `ci.yml`（**Dev Builds**） | 每次 push / PR / 手动 | 每次提交都构建一份构建版，产物在 Actions 的 artifact 中 |
 | `release.yml`（**Release**） | Release 被 publish / 手动 dispatch | 构建后把 exe 挂到对应 Release |
 
 构建产物：
 
-- `PCL2Patch.exe`：framework-dependent 单文件（需 .NET 8 Runtime，约 665 KB）
-- `PCL2Patch-selfcontained.exe`：self-contained 单文件（免运行时，约 65 MB）
+- `PCL2Patch.exe`：CLI，framework-dependent 单文件（需 .NET 8 Runtime，约 665 KB）
+- `PCL2Patch-selfcontained.exe`：CLI，self-contained 单文件（免运行时，约 65 MB）
+- `PCL2Patch.Gui.exe`：GUI，framework-dependent 单文件（需 .NET 8 Desktop Runtime，约 680 KB）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：
@@ -142,12 +156,18 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 ```
 PCL2Patch/
-├── .github/workflows/release.yml  # 打 tag 自动构建并发布 Release
+├── .github/workflows/
+│   ├── build.yml        # 可复用构建（CLI + GUI 单文件 exe）
+│   ├── ci.yml           # Dev Builds：每次提交构建
+│   └── release.yml      # Release：发布时挂附件
 ├── .gitignore
 ├── LICENSE              # MIT
-├── src/                 # 补丁工具源码 (C# / .NET 8 / Mono.Cecil)
+├── src/
+│   ├── PCL2Patch.Core/  # 补丁引擎（IL 修改逻辑）
+│   ├── PCL2Patch.Cli/   # 命令行入口
+│   └── PCL2Patch.Gui/   # WinForms 图形界面
 ├── scripts/
-│   ├── build.ps1        # 构建脚本
+│   ├── build.ps1            # 构建脚本
 │   └── package-release.ps1  # 本地打包 Release 附件
 ├── docs/patch-notes.md  # 逐处 IL 修改说明
 └── README.md
