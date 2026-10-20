@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 
 namespace PCL2Patch.Gui;
@@ -18,16 +18,19 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        Program.Log("OnStartup");
-        var window = new MainWindow();
-        Program.Log("MainWindow created");
-        window.Show();
-        Program.Log("MainWindow shown");
+        new MainWindow().Show();
     }
 
     static void Log(Exception? ex)
     {
         if (ex is null) return;
-        Program.Log("UNHANDLED: " + ex);
+        try
+        {
+            File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "crash.log"), $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex}\r\n\r\n");
+        }
+        catch
+        {
+            // 日志失败忽略
+        }
     }
 }
