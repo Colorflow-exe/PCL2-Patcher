@@ -24,7 +24,9 @@ public partial class App : Application
         // 在创建窗口之前应用主题，避免首帧使用默认主题、点击后才重绘
         ApplyStartupTheme();
 
-        new MainWindow().Show();
+        var window = new MainWindow();
+        window.Show();
+        window.Activate();
     }
 
     private static void ApplyStartupTheme()

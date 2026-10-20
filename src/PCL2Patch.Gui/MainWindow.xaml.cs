@@ -258,7 +258,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         PatchButton.IsEnabled = false;
         RestoreButton.IsEnabled = false;
-        LogBox.Clear();
+        LogText.Text = string.Empty;
         StatusText.Text = Loc.Get("Status.Patching");
         AppendLog($"{Loc.Get("Log.Program")}: {official}");
         AppendLog(string.Empty);
@@ -369,7 +369,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             Dispatcher.Invoke(() => AppendLog(line));
             return;
         }
-        LogBox.AppendText(line + Environment.NewLine);
-        LogBox.ScrollToEnd();
+        LogText.Text += line + Environment.NewLine;
+        LogScroll.ScrollToEnd();
     }
 }
