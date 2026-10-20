@@ -56,6 +56,12 @@ cd src
 dotnet build -c Release
 ```
 
+或使用脚本（若系统禁止运行脚本）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build.ps1
+```
+
 产物：`src/bin/Release/net8.0/PCL2Patch.exe`
 
 ## 使用
