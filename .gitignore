@@ -25,3 +25,4 @@ PCL2_*/
 SHA256SUMS.txt
 # 工具内置的引用程序集（补丁时用于元数据解析）
 !src/PCL2Patch.Core/Resources/*.dll
+dist/
