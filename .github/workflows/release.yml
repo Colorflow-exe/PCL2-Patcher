@@ -1,57 +1,56 @@
 name: Release
 
+# published: 发布 Release 后自动把构建产物挂上去
+# dispatch: 手动为指定 tag 的 Release 追加产物
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types:
+      - published
   workflow_dispatch:
-
-permissions:
-  contents: write
+    inputs:
+      target_release_tag:
+        description: The tag of the release you want to append the artifacts to
+        required: true
+        type: string
 
 jobs:
+  # 确认目标 Release 存在，避免挂到不存在的 tag 上
+  validate_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get GitHub release information
+        uses: cardinalby/git-get-release-action@1.2.6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
+
   build:
-    runs-on: windows-latest
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    needs:
+      - validate_release
+    with:
+      release: true
+
+  release:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Publish (framework-dependent)
-        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -o out/framework
-
-      - name: Publish (self-contained, single file)
-        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/selfcontained
-
-      - name: Package
-        shell: pwsh
-        run: |
-          Compress-Archive -Path out/framework/* -DestinationPath PCL2Patch-win-x64-framework-dependent.zip
-          Compress-Archive -Path out/selfcontained/* -DestinationPath PCL2Patch-win-x64-selfcontained.zip
-          $files = Get-ChildItem *.zip
-          $lines = $files | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" }
-          $lines | Set-Content -Encoding ascii SHA256SUMS.txt
-          Get-Content SHA256SUMS.txt
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           name: PCL2Patch-win-x64
-          path: |
-            *.zip
-            SHA256SUMS.txt
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
-            PCL2Patch-win-x64-framework-dependent.zip
-            PCL2Patch-win-x64-selfcontained.zip
+            PCL2Patch.exe
+            PCL2Patch-selfcontained.exe
             SHA256SUMS.txt
-          generate_release_notes: true

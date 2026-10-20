@@ -1,0 +1,50 @@
+name: _step.build
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish (framework-dependent, single file)
+        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o out/fd
+
+      - name: Publish (self-contained, single file)
+        run: dotnet publish src/PCL2Patch.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/sc
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Copy-Item out/fd/PCL2Patch.exe PCL2Patch.exe
+          Copy-Item out/sc/PCL2Patch.exe PCL2Patch-selfcontained.exe
+          $lines = @(
+            "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe",
+            "$((Get-FileHash PCL2Patch-selfcontained.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch-selfcontained.exe"
+          )
+          $lines | Set-Content -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+          Get-ChildItem PCL2Patch*.exe | Format-Table Name, Length
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PCL2Patch-win-x64
+          path: |
+            PCL2Patch.exe
+            PCL2Patch-selfcontained.exe
+            SHA256SUMS.txt

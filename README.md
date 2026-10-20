@@ -112,30 +112,31 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 ## 发布 Release
 
 `.gitignore` 里的 `*.exe` 只影响 **git 跟踪**；GitHub Release 的附件是单独上传的，
-不受 `.gitignore` 影响。因此：
+不受 `.gitignore` 影响。
 
-- 本仓库的 Release 只发布**工具本体**（`PCL2Patch.exe`，MIT 许可）；
-- 补丁后的 `PCL2.exe` 属于《PCL 分发有限许可》范围，不建议随 Release 分发；
-  建议让使用者自备官方 exe，再本地执行 `apply` 生成。
+工作流按「构建 / 发布」分离（参考 Carpet-Igny-Addition 的组织方式）：
 
-自动发布（打 tag 即触发）：
+| 工作流 | 触发 | 作用 |
+|---|---|---|
+| `build.yml` | `workflow_call`（被下面两个调用） | 发布两个单文件 exe 并上传 artifact |
+| `ci.yml`（**Dev Builds**） | 每次 push / PR / 手动 | 每次提交都构建一份构建版，产物在 Actions 的 artifact 中 |
+| `release.yml`（**Release**） | Release 被 publish / 手动 dispatch | 构建后把 exe 挂到对应 Release |
 
-```powershell
-git tag v1.0.0
-git push origin v1.0.0
-```
+构建产物：
 
-`.github/workflows/release.yml` 会构建并上传：
-
-- `PCL2Patch-win-x64-framework-dependent.zip`（需安装 .NET 8 Runtime，约 1 MB）
-- `PCL2Patch-win-x64-selfcontained.zip`（免运行时，单文件，约 70 MB）
+- `PCL2Patch.exe`：framework-dependent 单文件（需 .NET 8 Runtime，约 665 KB）
+- `PCL2Patch-selfcontained.exe`：self-contained 单文件（免运行时，约 65 MB）
 - `SHA256SUMS.txt`
 
-本地打包同样可用：
+发布流程（在 GitHub 页面操作即可）：
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
-```
+1. `Actions → Dev Builds` 每次 push 自动跑，可在 artifact 下载构建版；
+2. 在 GitHub 上 **Draft a new release**，选择 tag 并 **Publish release**；
+3. `Release` 工作流触发，自动构建并上传上述三个文件；
+4. 也可在 `Actions → Release → Run workflow` 为已有 tag 追加附件。
+
+> 本仓库的 Release 只发布**工具本体**（MIT 许可）。补丁后的 `PCL2.exe` 属于
+> 《PCL 分发有限许可》范围，不建议随 Release 分发。
 
 ## 目录结构
 
