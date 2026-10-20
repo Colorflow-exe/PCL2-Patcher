@@ -113,8 +113,14 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 ```
 PCL2Patch/
+├── LICENSE              # MIT
 ├── src/                 # 补丁工具源码 (C# / .NET 8 / Mono.Cecil)
 ├── scripts/build.ps1    # 构建脚本
 ├── docs/patch-notes.md  # 逐处 IL 修改说明
 └── README.md
 ```
+
+## 许可证
+
+[MIT](LICENSE)
+

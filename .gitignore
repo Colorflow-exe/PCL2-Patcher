@@ -9,6 +9,12 @@ build/
 *.pdb
 *.xml
 
+# 压缩包 / 日志 / PCL 运行时生成物
+*.zip
+*.log
+PCL/
+PCL2_*/
+
 # 用户本地
 *.user
 *.suo
