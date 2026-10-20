@@ -252,11 +252,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             case TargetState.NoPermission:
                 if (!IsAdmin)
                 {
-                    if (MessageBox.Show(this, Loc.Get("Msg.ElevateConfirm"), Loc.Get("Msg.Hint"),
-                            MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    {
-                        ElevateAndPatch(official);
-                    }
+                    // 直接自动提权并继续，不再询问
+                    ElevateAndPatch(official);
                     return;
                 }
                 MessageBox.Show(this, Loc.Get("Msg.NoPermission"), Loc.Get("Msg.Hint"),
@@ -353,11 +350,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             case TargetState.NoPermission:
                 if (!IsAdmin)
                 {
-                    if (MessageBox.Show(this, Loc.Get("Msg.ElevateConfirm"), Loc.Get("Msg.Hint"),
-                            MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                    {
-                        ElevateAndPatch(official);
-                    }
+                    // 直接自动提权并继续，不再询问
+                    ElevateAndPatch(official);
                     return;
                 }
                 MessageBox.Show(this, Loc.Get("Msg.NoPermission"), Loc.Get("Msg.Hint"),
