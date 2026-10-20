@@ -239,9 +239,16 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         switch (CheckTarget(official))
         {
             case TargetState.Occupied:
-                MessageBox.Show(this, Loc.Get("Msg.Occupied"), Loc.Get("Msg.Hint"),
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                if (MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Confirm"), Loc.Get("Msg.Hint"),
+                        MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                    return;
+                if (!TryCloseProgram(official) || CheckTarget(official) == TargetState.Occupied)
+                {
+                    MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Failed"), Loc.Get("Msg.Hint"),
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                break;
             case TargetState.NoPermission:
                 if (!IsAdmin)
                 {
@@ -333,9 +340,16 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         switch (CheckTarget(official))
         {
             case TargetState.Occupied:
-                MessageBox.Show(this, Loc.Get("Msg.Occupied"), Loc.Get("Msg.Hint"),
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                if (MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Confirm"), Loc.Get("Msg.Hint"),
+                        MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                    return;
+                if (!TryCloseProgram(official) || CheckTarget(official) == TargetState.Occupied)
+                {
+                    MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Failed"), Loc.Get("Msg.Hint"),
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                break;
             case TargetState.NoPermission:
                 if (!IsAdmin)
                 {
@@ -398,6 +412,35 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         NoPermission
     }
 
+    private static bool TryCloseProgram(string targetPath)
+    {
+        var name = Path.GetFileNameWithoutExtension(targetPath);
+        var processes = Process.GetProcessesByName(name);
+        if (processes.Length == 0) return true;
+
+        foreach (var process in processes)
+        {
+            try { process.CloseMainWindow(); } catch { }
+        }
+
+        for (var i = 0; i < 50; i++)
+        {
+            System.Threading.Thread.Sleep(100);
+            if (Process.GetProcessesByName(name).Length == 0) return true;
+        }
+
+        foreach (var process in Process.GetProcessesByName(name))
+        {
+            try { process.Kill(); } catch { }
+        }
+
+        for (var i = 0; i < 20; i++)
+        {
+            System.Threading.Thread.Sleep(100);
+            if (Process.GetProcessesByName(name).Length == 0) return true;
+        }
+        return false;
+    }
     private static TargetState CheckTarget(string path)
     {
         var shared = false;
