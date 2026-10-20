@@ -43,6 +43,8 @@ public static class PatchEngine
         var temp = Path.Combine(dir, $".{name}.patching{ext}");
         var backup = GetBackupPath(fullPath);
 
+        try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+
         try
         {
             Apply(fullPath, temp, log);
@@ -108,7 +110,7 @@ public static class PatchEngine
         var direct = Path.Combine(dir, $"{name}_backup{ext}");
         if (File.Exists(direct)) return direct;
 
-        for (var i = 1; i < 100; i++)
+        for (var i = 1; i < 1000; i++)
         {
             var candidate = Path.Combine(dir, $"{name}_backup_{i}{ext}");
             if (File.Exists(candidate)) return candidate;
@@ -116,14 +118,28 @@ public static class PatchEngine
         return null;
     }
 
-    /// <summary>从备份恢复原版程序（覆盖当前补丁版）。</summary>
+    /// <summary>从备份恢复原版程序（覆盖当前补丁版）。失败时回滚备份。</summary>
     public static void Restore(string officialPath, Action<string>? log = null)
     {
         log ??= _ => { };
         var fullPath = Path.GetFullPath(officialPath);
         var backup = FindBackup(fullPath) ?? throw new Exception("未找到备份文件");
-        File.Delete(fullPath);
-        File.Move(backup, fullPath);
+        var staging = fullPath + ".restoring";
+        try { if (File.Exists(staging)) File.Delete(staging); } catch { }
+
+        // 先把备份移到临时位置，确保删除补丁版失败时备份仍可还原
+        File.Move(backup, staging);
+        try
+        {
+            File.Delete(fullPath);
+            File.Move(staging, fullPath);
+        }
+        catch
+        {
+            if (File.Exists(staging)) File.Move(staging, backup);
+            throw;
+        }
+
         log($"已恢复原版: {fullPath}");
     }
     /// <summary>读取内置的参考程序集（RestrictMcDownload = False 的编译版，gzip 压缩）。</summary>

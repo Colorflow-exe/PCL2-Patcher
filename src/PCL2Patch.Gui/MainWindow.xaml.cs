@@ -24,6 +24,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         BuildSelectors();
         ApplyLocalization();
         LoadTheme();
+        StatusText.Text = Loc.Get("Status.Ready");
 
         _initializing = false;
     }
@@ -53,7 +54,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         PatchButton.Content = Loc.Get("Button.Start");
         RestoreButton.Content = Loc.Get("Button.Restore");
         OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
-        StatusText.Text = Loc.Get("Status.Ready");
 
         ((ComboBoxItem)ThemeBox.Items[0]).Content = Loc.Get("Theme.Light");
         ((ComboBoxItem)ThemeBox.Items[1]).Content = Loc.Get("Theme.Dark");
@@ -184,25 +184,31 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
+        bool alreadyPatched;
+        bool officialBuild;
         try
         {
-            if (PatchEngine.IsPatched(official))
-            {
-                MessageBox.Show(this, Loc.Get("Msg.AlreadyPatched"), Loc.Get("Msg.Hint"),
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!PatchEngine.IsOfficialBuild(official))
-            {
-                MessageBox.Show(this, Loc.Get("Msg.NotOfficial"), Loc.Get("Msg.Hint"),
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            (alreadyPatched, officialBuild) = await Task.Run(() => (
+                PatchEngine.IsPatched(official),
+                PatchEngine.IsOfficialBuild(official)));
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, $"{Loc.Get("Msg.InvalidProgram")}\n{ex.Message}", Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (alreadyPatched)
+        {
+            MessageBox.Show(this, Loc.Get("Msg.AlreadyPatched"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (!officialBuild)
+        {
+            MessageBox.Show(this, Loc.Get("Msg.NotOfficial"), Loc.Get("Msg.Hint"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
