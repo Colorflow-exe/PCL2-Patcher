@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -14,7 +14,7 @@ public static class PatchEngine
     public static void Apply(string officialPath, string outputPath, Action<string>? log = null)
     {
         log ??= _ => { };
-        var official = AssemblyDefinition.ReadAssembly(officialPath, ReaderParams(officialPath));
+        using var official = AssemblyDefinition.ReadAssembly(officialPath, ReaderParams(officialPath));
         var module = official.MainModule;
 
         PatchDownloadLoader(module, log);
@@ -29,6 +29,56 @@ public static class PatchEngine
         log($"已写出: {outputPath}");
     }
 
+    /// <summary>
+    /// 就地修补：先备份原程序（原名_backup.exe），再用修补结果覆盖原路径。
+    /// 返回备份文件路径；任何一步失败都会回滚。
+    /// </summary>
+    public static string ApplyInPlace(string officialPath, Action<string>? log = null)
+    {
+        log ??= _ => { };
+        var fullPath = Path.GetFullPath(officialPath);
+        var dir = Path.GetDirectoryName(fullPath)!;
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        var ext = Path.GetExtension(fullPath);
+        var temp = Path.Combine(dir, $".{name}.patching{ext}");
+        var backup = GetBackupPath(fullPath);
+
+        try
+        {
+            Apply(fullPath, temp, log);
+            File.Move(fullPath, backup);
+            try
+            {
+                File.Move(temp, fullPath);
+            }
+            catch
+            {
+                File.Move(backup, fullPath);
+                throw;
+            }
+            return backup;
+        }
+        catch
+        {
+            if (File.Exists(temp))
+            {
+                try { File.Delete(temp); } catch { }
+            }
+            throw;
+        }
+    }
+
+    static string GetBackupPath(string officialPath)
+    {
+        var dir = Path.GetDirectoryName(officialPath)!;
+        var name = Path.GetFileNameWithoutExtension(officialPath);
+        var ext = Path.GetExtension(officialPath);
+        var candidate = Path.Combine(dir, $"{name}_backup{ext}");
+        var index = 1;
+        while (File.Exists(candidate))
+            candidate = Path.Combine(dir, $"{name}_backup_{index++}{ext}");
+        return candidate;
+    }
     /// <summary>读取内置的参考程序集（RestrictMcDownload = False 的编译版，gzip 压缩）。</summary>
     static AssemblyDefinition LoadReferenceAssembly()
     {

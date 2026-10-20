@@ -40,6 +40,8 @@ public static class Loc
         ["Log.Program"] = ("官方程序", "Program"),
         ["Log.Output"] = ("输出路径", "Output"),
         ["Log.Done"] = ("修补完成", "Patched"),
+        ["Log.Backup"] = ("已备份原程序", "Backup"),
+        ["Msg.Backup"] = ("原程序备份：", "Backup:"),
         ["Msg.SelectProgram"] = ("请选择官方 PCL2 程序。", "Please select the official PCL2 executable."),
         ["Msg.Success"] = ("修补完成：", "Patch completed:"),
         ["Msg.Failed"] = ("修补失败：", "Patch failed:"),

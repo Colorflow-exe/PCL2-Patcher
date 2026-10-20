@@ -74,8 +74,8 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 - 切换后界面文案立即更新，选择会被记住。
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
-2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
-3. 点击 **开始修补**，下方日志会显示 5 个补丁步骤，完成后弹窗提示。
+2. 点击 **开始修补**，下方日志会显示 5 个补丁步骤；
+3. 修补完成后，原程序会被替换为补丁版（**文件名不变**），原版自动备份为 `Plain Craft Launcher 2_backup.exe`（若已存在则追加 `_1`、`_2`…）。
 
 ## 验证
 

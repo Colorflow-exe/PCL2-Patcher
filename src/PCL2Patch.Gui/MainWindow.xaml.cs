@@ -49,12 +49,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ThemeLabel.Text = Loc.Get("Label.Theme");
         LanguageLabel.Text = Loc.Get("Label.Language");
         ProgramLabel.Text = Loc.Get("Label.Program");
-        OutputLabel.Text = Loc.Get("Label.Output");
         BrowseProgramButton.Content = Loc.Get("Button.Browse");
-        BrowseOutputButton.Content = Loc.Get("Button.Browse");
         PatchButton.Content = Loc.Get("Button.Start");
         OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
-        OutputBox.PlaceholderText = Loc.Get("Placeholder.Output");
         StatusText.Text = Loc.Get("Status.Ready");
 
         ((ComboBoxItem)ThemeBox.Items[0]).Content = Loc.Get("Theme.Light");
@@ -82,7 +79,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private void LoadTheme()
     {
-        var index = 2; // 默认跟随系统
+        var index = 2;
         try
         {
             index = ReadThemePreference() switch
@@ -100,13 +97,12 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ThemeBox.SelectedIndex = index;
         ApplyTheme(index);
 
-        var languageIndex = Loc.Language switch
+        LanguageBox.SelectedIndex = Loc.Language switch
         {
             AppLanguage.Chinese => 1,
             AppLanguage.English => 2,
             _ => 0
         };
-        LanguageBox.SelectedIndex = languageIndex;
     }
 
     private void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -166,24 +162,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             Title = Loc.Get("Label.Program"),
             Filter = "PCL2 (*.exe)|*.exe|*|*.*"
         };
-        if (dialog.ShowDialog(this) != true) return;
-
-        OfficialBox.Text = dialog.FileName;
-        if (string.IsNullOrWhiteSpace(OutputBox.Text))
-            OutputBox.Text = SuggestOutput(dialog.FileName);
-    }
-
-    private void BrowseOutput_Click(object sender, RoutedEventArgs e)
-    {
-        var seed = string.IsNullOrWhiteSpace(OfficialBox.Text) ? "PCL2.exe" : OfficialBox.Text;
-        var dialog = new SaveFileDialog
-        {
-            Title = Loc.Get("Label.Output"),
-            Filter = "PCL2 (*.exe)|*.exe",
-            FileName = Path.GetFileName(SuggestOutput(seed))
-        };
         if (dialog.ShowDialog(this) == true)
-            OutputBox.Text = dialog.FileName;
+            OfficialBox.Text = dialog.FileName;
     }
 
     private async void Patch_Click(object sender, RoutedEventArgs e)
@@ -196,24 +176,24 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
-        var output = string.IsNullOrWhiteSpace(OutputBox.Text) ? SuggestOutput(official) : OutputBox.Text.Trim();
-        OutputBox.Text = output;
-
         PatchButton.IsEnabled = false;
         LogBox.Clear();
         StatusText.Text = Loc.Get("Status.Patching");
         AppendLog($"{Loc.Get("Log.Program")}: {official}");
-        AppendLog($"{Loc.Get("Log.Output")}: {output}");
         AppendLog(string.Empty);
 
         try
         {
-            await Task.Run(() => PatchEngine.Apply(official, output, AppendLog));
-            StatusText.Text = Loc.Get("Status.Done");
+            string backup = string.Empty;
+            await Task.Run(() => backup = PatchEngine.ApplyInPlace(official, AppendLog));
+
             AppendLog(string.Empty);
-            AppendLog($"{Loc.Get("Log.Done")}: {output}");
-            MessageBox.Show(this, $"{Loc.Get("Msg.Success")}\n{output}", Loc.Get("Msg.SuccessTitle"),
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            AppendLog($"{Loc.Get("Log.Backup")}: {backup}");
+            AppendLog($"{Loc.Get("Log.Done")}: {official}");
+            StatusText.Text = Loc.Get("Status.Done");
+            MessageBox.Show(this,
+                $"{Loc.Get("Msg.Success")}\n{official}\n\n{Loc.Get("Msg.Backup")}\n{backup}",
+                Loc.Get("Msg.SuccessTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
@@ -226,13 +206,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         {
             PatchButton.IsEnabled = true;
         }
-    }
-
-    private static string SuggestOutput(string officialPath)
-    {
-        var dir = Path.GetDirectoryName(officialPath) ?? ".";
-        var name = Path.GetFileNameWithoutExtension(officialPath);
-        return Path.Combine(dir, name + "_patched.exe");
     }
 
     private void AppendLog(string line)
