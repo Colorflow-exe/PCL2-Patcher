@@ -70,12 +70,17 @@
                            Margin="10,0,0,0" Click="Restore_Click" />
             </Grid>
 
-            <ScrollViewer x:Name="LogScroll" Grid.Row="3" Margin="0,16,0,12"
-                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                           TextWrapping="NoWrap" />
-            </ScrollViewer>
+            <Border Grid.Row="3" Margin="0,16,0,12" Padding="10,8"
+                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="4">
+                <ScrollViewer x:Name="LogScroll"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               TextWrapping="NoWrap" />
+                </ScrollViewer>
+            </Border>
 
             <TextBlock x:Name="StatusText" Grid.Row="4" Text="就绪"
                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
