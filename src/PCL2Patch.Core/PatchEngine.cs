@@ -79,6 +79,53 @@ public static class PatchEngine
             candidate = Path.Combine(dir, $"{name}_backup_{index++}{ext}");
         return candidate;
     }
+    /// <summary>判断目标程序是否已经是补丁版（LoaderInit 中不再有“关闭下载”占位）。</summary>
+    public static bool IsPatched(string path)
+    {
+        using var asm = AssemblyDefinition.ReadAssembly(path, ReaderParams(path));
+        var type = FindType(asm.MainModule, "PCL.PageDownloadInstall");
+        var method = type.Methods.First(x => x.Name == "LoaderInit");
+        return !method.Body.Instructions.Any(i => i.OpCode == OpCodes.Ldstr && (string)i.Operand == "关闭下载");
+    }
+
+    /// <summary>判断是否为官方版 PCL2（VersionBranchMain == "Official"）。</summary>
+    public static bool IsOfficialBuild(string path)
+    {
+        using var asm = AssemblyDefinition.ReadAssembly(path, ReaderParams(path));
+        var type = FindType(asm.MainModule, "PCL.ModSecret");
+        var field = type.Fields.FirstOrDefault(f => f.Name == "VersionBranchMain");
+        return field?.Constant is string value && value == "Official";
+    }
+
+    /// <summary>查找原版备份（原名_backup.exe 或 原名_backup_N.exe）。</summary>
+    public static string? FindBackup(string officialPath)
+    {
+        var fullPath = Path.GetFullPath(officialPath);
+        var dir = Path.GetDirectoryName(fullPath)!;
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        var ext = Path.GetExtension(fullPath);
+
+        var direct = Path.Combine(dir, $"{name}_backup{ext}");
+        if (File.Exists(direct)) return direct;
+
+        for (var i = 1; i < 100; i++)
+        {
+            var candidate = Path.Combine(dir, $"{name}_backup_{i}{ext}");
+            if (File.Exists(candidate)) return candidate;
+        }
+        return null;
+    }
+
+    /// <summary>从备份恢复原版程序（覆盖当前补丁版）。</summary>
+    public static void Restore(string officialPath, Action<string>? log = null)
+    {
+        log ??= _ => { };
+        var fullPath = Path.GetFullPath(officialPath);
+        var backup = FindBackup(fullPath) ?? throw new Exception("未找到备份文件");
+        File.Delete(fullPath);
+        File.Move(backup, fullPath);
+        log($"已恢复原版: {fullPath}");
+    }
     /// <summary>读取内置的参考程序集（RestrictMcDownload = False 的编译版，gzip 压缩）。</summary>
     static AssemblyDefinition LoadReferenceAssembly()
     {

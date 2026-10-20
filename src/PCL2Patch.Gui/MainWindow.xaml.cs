@@ -51,6 +51,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ProgramLabel.Text = Loc.Get("Label.Program");
         BrowseProgramButton.Content = Loc.Get("Button.Browse");
         PatchButton.Content = Loc.Get("Button.Start");
+        RestoreButton.Content = Loc.Get("Button.Restore");
         OfficialBox.PlaceholderText = Loc.Get("Placeholder.Program");
         StatusText.Text = Loc.Get("Status.Ready");
 
@@ -176,7 +177,38 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             return;
         }
 
+        if (IsFileLocked(official))
+        {
+            MessageBox.Show(this, Loc.Get("Msg.Busy"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            if (PatchEngine.IsPatched(official))
+            {
+                MessageBox.Show(this, Loc.Get("Msg.AlreadyPatched"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!PatchEngine.IsOfficialBuild(official))
+            {
+                MessageBox.Show(this, Loc.Get("Msg.NotOfficial"), Loc.Get("Msg.Hint"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"{Loc.Get("Msg.InvalidProgram")}\n{ex.Message}", Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         PatchButton.IsEnabled = false;
+        RestoreButton.IsEnabled = false;
         LogBox.Clear();
         StatusText.Text = Loc.Get("Status.Patching");
         AppendLog($"{Loc.Get("Log.Program")}: {official}");
@@ -205,6 +237,79 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         finally
         {
             PatchButton.IsEnabled = true;
+            RestoreButton.IsEnabled = true;
+        }
+    }
+
+    private async void Restore_Click(object sender, RoutedEventArgs e)
+    {
+        var official = OfficialBox.Text.Trim();
+        if (!File.Exists(official))
+        {
+            MessageBox.Show(this, Loc.Get("Msg.SelectProgram"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (IsFileLocked(official))
+        {
+            MessageBox.Show(this, Loc.Get("Msg.Busy"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var backup = PatchEngine.FindBackup(official);
+        if (backup == null)
+        {
+            MessageBox.Show(this, Loc.Get("Msg.NoBackup"), Loc.Get("Msg.Hint"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (MessageBox.Show(this, $"{Loc.Get("Msg.RestoreConfirm")}\n{backup}", Loc.Get("Msg.Hint"),
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        PatchButton.IsEnabled = false;
+        RestoreButton.IsEnabled = false;
+        StatusText.Text = Loc.Get("Status.Restoring");
+
+        try
+        {
+            await Task.Run(() => PatchEngine.Restore(official));
+            StatusText.Text = Loc.Get("Status.Done");
+            AppendLog($"{Loc.Get("Log.Restore")}: {official}");
+            MessageBox.Show(this, $"{Loc.Get("Msg.RestoreSuccess")}\n{official}",
+                Loc.Get("Msg.SuccessTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = Loc.Get("Status.Failed");
+            AppendLog($"{Loc.Get("Log.Failed")}: {ex.Message}");
+            MessageBox.Show(this, $"{Loc.Get("Msg.Failed")}\n{ex.Message}", Loc.Get("Msg.FailedTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            PatchButton.IsEnabled = true;
+            RestoreButton.IsEnabled = true;
+        }
+    }
+
+    private static bool IsFileLocked(string path)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            return false;
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return true;
         }
     }
 

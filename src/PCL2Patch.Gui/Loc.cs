@@ -47,7 +47,17 @@ public static class Loc
         ["Msg.Failed"] = ("修补失败：", "Patch failed:"),
         ["Msg.Hint"] = ("提示", "Hint"),
         ["Msg.SuccessTitle"] = ("成功", "Success"),
-        ["Msg.FailedTitle"] = ("失败", "Failed")
+        ["Msg.FailedTitle"] = ("失败", "Failed"),
+        ["Button.Restore"] = ("恢复原版", "Restore"),
+        ["Status.Restoring"] = ("正在恢复…", "Restoring…"),
+        ["Log.Restore"] = ("已恢复原版", "Restored"),
+        ["Msg.Busy"] = ("文件被占用或没有访问权限。请先关闭 PCL2（必要时以管理员身份运行本工具）。", "The file is locked or access denied. Close PCL2 first (run this tool as administrator if needed)."),
+        ["Msg.AlreadyPatched"] = ("该程序已经是补丁版，无需重复修补。如需还原，请点击“恢复原版”。", "This program is already patched. Use \"Restore\" to revert if needed."),
+        ["Msg.NotOfficial"] = ("该程序不是官方版 PCL2（VersionBranchMain != Official），已取消修补。", "This is not an official PCL2 build (VersionBranchMain != Official)."),
+        ["Msg.InvalidProgram"] = ("无法读取该程序，可能不是有效的 PCL2。", "Cannot read this program, it may not be a valid PCL2."),
+        ["Msg.NoBackup"] = ("未找到原版备份（*_backup.exe）。", "No backup found (*_backup.exe)."),
+        ["Msg.RestoreConfirm"] = ("将用备份恢复原程序，当前修补版会被替换。继续？", "Restore the original program from backup? The patched file will be replaced."),
+        ["Msg.RestoreSuccess"] = ("已恢复原版：", "Restored:")
     };
 
     public static bool IsChinese => Language switch

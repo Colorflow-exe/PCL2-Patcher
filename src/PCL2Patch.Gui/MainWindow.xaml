@@ -56,8 +56,16 @@
                 <ui:Button x:Name="BrowseProgramButton" Grid.Column="2" Content="浏览…" Click="BrowseOfficial_Click" />
             </Grid>
 
-            <ui:Button x:Name="PatchButton" Grid.Row="2" Content="开始修补" Height="38"
-                       Appearance="Primary" Click="Patch_Click" />
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:Button x:Name="PatchButton" Grid.Column="0" Content="开始修补" Height="38"
+                           Appearance="Primary" Click="Patch_Click" />
+                <ui:Button x:Name="RestoreButton" Grid.Column="1" Content="恢复原版" Height="38"
+                           Margin="10,0,0,0" Click="Restore_Click" />
+            </Grid>
 
             <TextBox x:Name="LogBox" Grid.Row="3" Margin="0,16,0,12"
                      IsReadOnly="True" AcceptsReturn="True"
