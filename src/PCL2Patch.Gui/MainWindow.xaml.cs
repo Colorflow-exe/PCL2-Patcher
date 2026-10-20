@@ -95,14 +95,24 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             // 读取失败时保持默认
         }
 
+        // 主题已在 App.OnStartup 中应用，这里只同步下拉框状态
         ThemeBox.SelectedIndex = index;
-        ApplyTheme(index);
 
         LanguageBox.SelectedIndex = Loc.Language switch
         {
             AppLanguage.Chinese => 1,
             AppLanguage.English => 2,
             _ => 0
+        };
+
+        // 窗口完全加载后再挂系统主题监听，避免首帧抖动
+        Loaded += (_, _) =>
+        {
+            if (ThemeBox.SelectedIndex == 2)
+            {
+                try { SystemThemeWatcher.Watch(this); } catch { }
+            }
+            InvalidateVisual();
         };
     }
 
