@@ -1,24 +1,22 @@
-﻿# 本地打包 Release 附件（GUI 免运行时单文件 + CLI 单文件）
+﻿# 构建补丁工具（Core + GUI），成品输出到仓库外的 ..\dist
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
+$dist = Join-Path $root "..\dist"
 Push-Location $root
 try {
-    dotnet publish "src\PCL2Patch.Cli\PCL2Patch.Cli.csproj" -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o "out\cli"
-    dotnet publish "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o "out\gui"
+    New-Item -ItemType Directory -Force -Path $dist | Out-Null
+    $stage = Join-Path $dist "_build"
 
-    Copy-Item "out\cli\PCL2Patch.Cli.exe" "PCL2Patch.Cli.exe" -Force
-    Copy-Item "out\gui\PCL2Patch.exe" "PCL2Patch.exe" -Force
+    dotnet publish "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $stage
 
-    $lines = @(
-        "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe",
-        "$((Get-FileHash PCL2Patch.Cli.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.Cli.exe"
-    )
-    $lines | Set-Content -Encoding ascii SHA256SUMS.txt
+    Copy-Item (Join-Path $stage "PCL2Patch.exe") (Join-Path $dist "PCL2Patch.exe") -Force
+    $hash = (Get-FileHash (Join-Path $dist "PCL2Patch.exe") -Algorithm SHA256).Hash.ToLower()
+    "$hash  PCL2Patch.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA256SUMS.txt")
 
     Write-Host ""
-    Write-Host "已生成 Release 附件："
-    Get-Content SHA256SUMS.txt
-    Get-ChildItem PCL2Patch*.exe | Format-Table Name, Length
+    Write-Host "已生成：$dist"
+    Get-ChildItem (Join-Path $dist "PCL2Patch.exe") | Format-Table Name, Length
+    Write-Host "SHA256: $hash"
 }
 finally {
     Pop-Location
