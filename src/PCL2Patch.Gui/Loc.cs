@@ -20,7 +20,7 @@ public static class Loc
     static readonly Dictionary<string, (string Zh, string En)> Strings = new()
     {
         ["Title"] = ("PCL2 限制解除补丁", "PCL2 Restriction Patch"),
-        ["Description"] = ("选择官方 PCL2 程序，点击“开始修补”生成解除下载/安装限制的副本（参考数据已内置，无需其他文件）。", "Select the official PCL2 executable and click \"Start\" to create an unrestricted copy (reference data is built in)."),
+        ["Description"] = ("选择官方 PCL2 程序，点击“开始修补”生成解除下载/安装限制的副本。", "Select the official PCL2 executable and click \"Start\" to create an unrestricted copy."),
         ["Label.Program"] = ("PCL2 程序", "PCL2 program"),
         ["Label.Output"] = ("输出路径", "Output path"),
         ["Label.Theme"] = ("主题", "Theme"),

@@ -22,7 +22,7 @@ Public Const RestrictMcDownload As Boolean = True
 - 资源详情页的整合包版本列表点击行为变成"保存 .mrpack"；
 - `ModpackInstall` 的整个安装分支（CurseForge / HMCL / MMC / MCBBS / Modrinth / 压缩包）被判定不可达而删除，只剩限制 throw。
 
-因此改元数据里的常量没有意义（已内联），必须改 IL。参考程序集（`RestrictMcDownload = False` 的编译版）已压缩内置，修补时自动读取。
+因此改元数据里的常量没有意义（已内联），必须改 IL。
 
 ## 补丁内容（5 处）
 
@@ -42,7 +42,6 @@ Public Const RestrictMcDownload As Boolean = True
 - 官方版 PCL2 exe（2.99.x，`PCL.ModSecret.VersionBranchMain = "Official"`）
 - 构建工具：.NET 8 SDK；运行环境：.NET Framework 4.8（Windows 10/11 自带）
 
-参考程序集已内置在 `PCL2Patch.Core`（`reference.gz`，约 2.5 MB），**不需要用户提供参考 exe**。
 
 ## 构建
 
@@ -77,8 +76,6 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
 3. 点击 **开始修补**，下方日志会显示 5 个补丁步骤，完成后弹窗提示。
-
-**不需要参考 exe**：参考程序集已压缩内置在 Core 中，修补时自动加载。GUI 只依赖 Core，不直接操作 IL（前后端分离）。
 
 ## 验证
 
