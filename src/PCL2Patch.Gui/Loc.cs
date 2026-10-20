@@ -50,7 +50,7 @@ public static class Loc
         ["Button.Restore"] = ("恢复原版", "Restore"),
         ["Status.Restoring"] = ("正在恢复…", "Restoring…"),
         ["Log.Restore"] = ("已恢复原版", "Restored"),
-        ["Msg.ClosePcl2Confirm"] = ("检测到 PCL2 正在运行。是否关闭它并继续修补？", "PCL2 is running. Close it and continue patching?"),
+        ["Msg.ClosePcl2Confirm"] = ("检测到 PCL2 正在运行。是否关闭它并继续？", "PCL2 is running. Close it and continue?"),
         ["Msg.ClosePcl2Failed"] = ("无法关闭 PCL2，请手动关闭后重试。", "Could not close PCL2. Please close it manually and retry."),
         ["Msg.Occupied"] = ("检测到 PCL2 正在运行（文件被占用），请关闭 PCL2 后重试。", "PCL2 appears to be running (file is locked). Please close it and retry."),
         ["Msg.NoPermission"] = ("没有写入权限（该目录可能受保护）。", "No write permission (the folder may be protected)."),

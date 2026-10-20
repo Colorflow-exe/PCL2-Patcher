@@ -30,7 +30,7 @@ public static class PatchEngine
     }
 
     /// <summary>
-    /// 就地修补：先备份原程序（原名_backup.exe），再用修补结果覆盖原路径。
+    /// 就地修补：先把原程序备份到工具数据目录，再用修补结果覆盖原路径。
     /// 返回备份文件路径；任何一步失败都会回滚。
     /// </summary>
     public static string ApplyInPlace(string officialPath, Action<string>? log = null)
@@ -205,7 +205,7 @@ public static class PatchEngine
     public static void Dump(string path, string target, Action<string>? log = null)
     {
         log ??= _ => { };
-        var asm = AssemblyDefinition.ReadAssembly(path, ReaderParams(path));
+        using var asm = AssemblyDefinition.ReadAssembly(path, ReaderParams(path));
         var m = asm.MainModule;
 
         if (!target.Contains("::"))
@@ -421,7 +421,7 @@ public static class PatchEngine
             if (res is null) return null;
             using var stream = host.GetManifestResourceStream(res);
             if (stream is null) return null;
-            return AssemblyDefinition.ReadAssembly(stream);
+            return AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { ReadingMode = ReadingMode.Immediate });
         }
 
         AssemblyDefinition Fake(AssemblyNameReference name)

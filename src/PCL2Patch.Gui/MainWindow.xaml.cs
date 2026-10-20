@@ -243,7 +243,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 if (MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Confirm"), Loc.Get("Msg.Hint"),
                         MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                     return;
-                if (!TryCloseProgram(official) || CheckTarget(official) == TargetState.Occupied)
+                var closed = await Task.Run(() => TryCloseProgram(official));
+                if (!closed || CheckTarget(official) == TargetState.Occupied)
                 {
                     MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Failed"), Loc.Get("Msg.Hint"),
                         MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -341,7 +342,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 if (MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Confirm"), Loc.Get("Msg.Hint"),
                         MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                     return;
-                if (!TryCloseProgram(official) || CheckTarget(official) == TargetState.Occupied)
+                var closed = await Task.Run(() => TryCloseProgram(official));
+                if (!closed || CheckTarget(official) == TargetState.Occupied)
                 {
                     MessageBox.Show(this, Loc.Get("Msg.ClosePcl2Failed"), Loc.Get("Msg.Hint"),
                         MessageBoxButton.OK, MessageBoxImage.Warning);

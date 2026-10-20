@@ -28,3 +28,5 @@ SHA256SUMS.txt
 dist/
 # Fody 生成文件
 FodyWeavers.xsd
+# Fody 配置需要提交
+!src/PCL2Patch.Gui/FodyWeavers.xml
