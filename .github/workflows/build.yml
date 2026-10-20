@@ -21,21 +21,22 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Publish GUI (self-contained, single file)
-        run: dotnet publish src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out/gui
+      # WPF + WPF-UI 在 PublishSingleFile 下启动会崩溃，因此发布为 self-contained 目录并打 zip
+      - name: Publish GUI (self-contained, folder)
+        run: dotnet publish src/PCL2Patch.Gui/PCL2Patch.Gui.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o out/PCL2Patch
 
       - name: Package
         shell: pwsh
         run: |
-          Copy-Item out/gui/PCL2Patch.exe PCL2Patch.exe
-          "$((Get-FileHash PCL2Patch.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patch.exe" | Set-Content -Encoding ascii SHA256SUMS.txt
+          Compress-Archive -Path out/PCL2Patch/* -DestinationPath PCL2Patch-win-x64.zip
+          "$((Get-FileHash PCL2Patch-win-x64.zip -Algorithm SHA256).Hash.ToLower())  PCL2Patch-win-x64.zip" | Set-Content -Encoding ascii SHA256SUMS.txt
           Get-Content SHA256SUMS.txt
-          Get-ChildItem PCL2Patch.exe | Format-Table Name, Length
+          Get-ChildItem PCL2Patch-win-x64.zip | Format-Table Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: PCL2Patch-win-x64
           path: |
-            PCL2Patch.exe
+            PCL2Patch-win-x64.zip
             SHA256SUMS.txt
