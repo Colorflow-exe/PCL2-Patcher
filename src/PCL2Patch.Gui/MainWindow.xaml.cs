@@ -24,16 +24,12 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         var index = 2; // 默认跟随系统
         try
         {
-            var path = ThemeSettingsPath;
-            if (File.Exists(path))
+            index = ReadThemePreference() switch
             {
-                index = File.ReadAllText(path).Trim().ToLowerInvariant() switch
-                {
-                    "light" => 0,
-                    "dark" => 1,
-                    _ => 2
-                };
-            }
+                "light" => 0,
+                "dark" => 1,
+                _ => 2
+            };
         }
         catch
         {
@@ -73,7 +69,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         try
         {
-            File.WriteAllText(ThemeSettingsPath, index switch { 0 => "light", 1 => "dark", _ => "system" });
+            SaveThemePreference(index switch { 0 => "light", 1 => "dark", _ => "system" });
         }
         catch
         {
@@ -81,22 +77,16 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
     }
 
-    private static string ThemeSettingsPath
+    private static string ReadThemePreference()
     {
-        get
-        {
-            // 优先 exe 同目录（便携），失败回退到临时目录
-            var exeDir = Path.Combine(AppContext.BaseDirectory, "theme.txt");
-            try
-            {
-                File.AppendAllText(exeDir, string.Empty);
-                return exeDir;
-            }
-            catch
-            {
-                return Path.Combine(Path.GetTempPath(), "PCL2Patch-theme.txt");
-            }
-        }
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patch");
+        return key?.GetValue("Theme") as string ?? "system";
+    }
+
+    private static void SaveThemePreference(string value)
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\PCL2Patch");
+        key?.SetValue("Theme", value);
     }
 
     // ---------- 补丁 ----------

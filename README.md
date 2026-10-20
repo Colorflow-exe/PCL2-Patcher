@@ -58,15 +58,17 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 
 打包脚本会把成品输出到**仓库外的 `..\dist`**，避免构建产物混入仓库：
 
-- `..\dist\PCL2Patch.exe`：self-contained 单文件（免运行时，打开即用）
+- `..\dist\PCL2Patch.exe`：单文件（需 .NET 8 Desktop Runtime，双击即开）
 - `..\dist\SHA256SUMS.txt`
 
 ## GUI
 
-`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，**免运行时**（self-contained 单文件，打开即用，约 166 MB）。
+`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，单文件（约 12 MB），双击即开。
 
-> 若在某些受限环境中启动报 `0xe0434352`：这是 .NET 单文件宿主无法在 `%TEMP%` 下创建提取目录所致。
-> 设置环境变量 `DOTNET_BUNDLE_EXTRACT_BASE_DIR` 指向一个可写目录（如 `D:\PCL2PatchRuntime`）即可。
+需要 **.NET 8 Desktop Runtime**（Windows 10/11 多数环境已安装；未安装可从
+<https://dotnet.microsoft.com/download/dotnet/8.0> 下载安装）。
+
+> 主题选择保存在注册表 `HKCU\Software\PCL2Patch`，不会在程序目录生成任何文件。
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
@@ -112,7 +114,7 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 构建产物：
 
-- `PCL2Patch.exe`：GUI，self-contained 单文件（免运行时，打开即用）
+- `PCL2Patch.exe`：GUI，单文件（需 .NET 8 Desktop Runtime，双击即开）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：

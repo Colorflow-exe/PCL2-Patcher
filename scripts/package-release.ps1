@@ -1,5 +1,5 @@
 ﻿# 构建补丁工具（Core + GUI），成品输出到仓库外的 ..\dist
-# 发布为 self-contained 单文件 exe；IncludeNativeLibrariesForSelfExtract 确保 WPF native 库打包。
+# 发布为 framework-dependent 单文件 exe（需 .NET 8 Desktop Runtime），双击即开。
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $dist = Join-Path $root "..\dist"
@@ -8,7 +8,7 @@ try {
     New-Item -ItemType Directory -Force -Path $dist | Out-Null
     $stage = Join-Path $dist "_build"
 
-    dotnet publish "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o $stage
+    dotnet publish "src\PCL2Patch.Gui\PCL2Patch.Gui.csproj" -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o $stage
 
     Copy-Item (Join-Path $stage "PCL2Patch.exe") (Join-Path $dist "PCL2Patch.exe") -Force
     $hash = (Get-FileHash (Join-Path $dist "PCL2Patch.exe") -Algorithm SHA256).Hash.ToLower()
