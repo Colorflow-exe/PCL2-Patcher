@@ -7,7 +7,10 @@
                  MinWidth="720" MinHeight="480"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
-                 WindowBackdropType="Mica">
+                 WindowBackdropType="Mica"
+                 AllowDrop="True"
+                 DragOver="Window_DragOver"
+                 Drop="Window_Drop">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

@@ -156,6 +156,34 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     // ---------- 补丁 ----------
 
+    // ---------- 拖放 ----------
+
+    private void Window_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) && HasExe(e.Data)
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void Window_Drop(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] files) return;
+
+        var exe = files.FirstOrDefault(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+        if (exe is null) return;
+
+        OfficialBox.Text = exe;
+        StatusText.Text = Loc.Get("Status.Ready");
+        e.Handled = true;
+    }
+
+    private static bool HasExe(IDataObject data)
+    {
+        if (data.GetData(DataFormats.FileDrop) is not string[] files) return false;
+        return files.Any(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+    }
     private void BrowseOfficial_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
