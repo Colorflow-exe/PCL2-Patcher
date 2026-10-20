@@ -48,14 +48,19 @@ public static class PatchEngine
         try
         {
             Apply(fullPath, temp, log);
-            File.Move(fullPath, backup);
+
+            // 备份到工具数据目录（不在 PCL2 目录产生额外文件）
+            Directory.CreateDirectory(BackupDirectory);
+            File.Copy(fullPath, backup, true);
+            File.Delete(fullPath);
+
             try
             {
                 File.Move(temp, fullPath);
             }
             catch
             {
-                File.Move(backup, fullPath);
+                File.Copy(backup, fullPath, true);
                 throw;
             }
             return backup;
@@ -70,18 +75,7 @@ public static class PatchEngine
         }
     }
 
-    static string GetBackupPath(string officialPath)
-    {
-        var dir = Path.GetDirectoryName(officialPath)!;
-        var name = Path.GetFileNameWithoutExtension(officialPath);
-        var ext = Path.GetExtension(officialPath);
-        var candidate = Path.Combine(dir, $"{name}_backup{ext}");
-        var index = 1;
-        while (File.Exists(candidate))
-            candidate = Path.Combine(dir, $"{name}_backup_{index++}{ext}");
-        return candidate;
-    }
-    /// <summary>判断目标程序是否已经是补丁版（LoaderInit 中不再有“关闭下载”占位）。</summary>
+   /// <summary>判断目标程序是否已经是补丁版（LoaderInit 中不再有“关闭下载”占位）。</summary>
     public static bool IsPatched(string path)
     {
         using var asm = AssemblyDefinition.ReadAssembly(path, ReaderParams(path));
@@ -99,47 +93,93 @@ public static class PatchEngine
         return field?.Constant is string value && value == "Official";
     }
 
-    /// <summary>查找原版备份（原名_backup.exe 或 原名_backup_N.exe）。</summary>
-    public static string? FindBackup(string officialPath)
+    static string? _backupDirectory;
+
+    /// <summary>备份目录：工具数据目录，不在 PCL2 目录产生额外文件；不可写时回退到临时目录。</summary>
+    static string BackupDirectory
     {
-        var fullPath = Path.GetFullPath(officialPath);
-        var dir = Path.GetDirectoryName(fullPath)!;
-        var name = Path.GetFileNameWithoutExtension(fullPath);
-        var ext = Path.GetExtension(fullPath);
-
-        var direct = Path.Combine(dir, $"{name}_backup{ext}");
-        if (File.Exists(direct)) return direct;
-
-        for (var i = 1; i < 1000; i++)
+        get
         {
-            var candidate = Path.Combine(dir, $"{name}_backup_{i}{ext}");
-            if (File.Exists(candidate)) return candidate;
+            if (_backupDirectory is not null) return _backupDirectory;
+
+            var candidates = new[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCL2Patch", "backup"),
+                Path.Combine(Path.GetTempPath(), "PCL2Patch", "backup"),
+                Path.Combine(AppContext.BaseDirectory, "backup")
+            };
+
+            foreach (var dir in candidates)
+            {
+                try
+                {
+                    Directory.CreateDirectory(dir);
+                    _backupDirectory = dir;
+                    return dir;
+                }
+                catch
+                {
+                    // 尝试下一个位置
+                }
+            }
+
+            throw new Exception("无法创建备份目录");
         }
-        return null;
     }
 
-    /// <summary>从备份恢复原版程序（覆盖当前补丁版）。失败时回滚备份。</summary>
+    static string GetBackupPath(string officialPath)
+    {
+        var fullPath = Path.GetFullPath(officialPath);
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        var ext = Path.GetExtension(fullPath);
+        var key = ShortHash(fullPath.ToLowerInvariant());
+        return Path.Combine(BackupDirectory, $"{name}_{key}{ext}");
+    }
+
+    static string ShortHash(string text)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(text));
+        return BitConverter.ToString(bytes, 0, 4).Replace("-", "").ToLowerInvariant();
+    }
+
+    /// <summary>查找原版备份（位于工具数据目录）。</summary>
+    public static string? FindBackup(string officialPath)
+    {
+        try
+        {
+            var path = GetBackupPath(officialPath);
+            return File.Exists(path) ? path : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>撤销修补：从工具数据目录的备份恢复原版（覆盖当前补丁版）。</summary>
     public static void Restore(string officialPath, Action<string>? log = null)
     {
         log ??= _ => { };
         var fullPath = Path.GetFullPath(officialPath);
-        var backup = FindBackup(fullPath) ?? throw new Exception("未找到备份文件");
+        var backup = FindBackup(fullPath) ?? throw new Exception("未找到原版备份");
         var staging = fullPath + ".restoring";
         try { if (File.Exists(staging)) File.Delete(staging); } catch { }
 
-        // 先把备份移到临时位置，确保删除补丁版失败时备份仍可还原
-        File.Move(backup, staging);
+        // 先把备份复制到临时位置，确保恢复失败时原文件仍可还原
+        File.Copy(backup, staging, true);
         try
         {
-            File.Delete(fullPath);
-            File.Move(staging, fullPath);
+            File.Copy(staging, fullPath, true);
         }
         catch
         {
-            if (File.Exists(staging)) File.Move(staging, backup);
+            try { File.Delete(staging); } catch { }
             throw;
         }
 
+        try { File.Delete(staging); } catch { }
+        try { File.Delete(backup); } catch { }
         log($"已恢复原版: {fullPath}");
     }
     /// <summary>读取内置的参考程序集（RestrictMcDownload = False 的编译版，gzip 压缩）。</summary>
