@@ -1,4 +1,4 @@
-# PCL2Patch
+﻿# PCL2Patch
 
 针对 **Plain Craft Launcher 2**（PCL2）的 IL 补丁工具：解除官方版中 `RestrictMcDownload` 常量带来的下载/安装限制。
 
@@ -54,16 +54,15 @@ powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
 
 打包脚本会把成品输出到**仓库外的 `..\dist`**，避免构建产物混入仓库：
 
-- `..\dist\PCL2Patch-win-x64.zip`：self-contained 目录打包（免运行时，解压即用）
-- `..\dist\PCL2Patch\`：解压后的目录（含 `PCL2Patch.exe`）
+- `..\dist\PCL2Patch.exe`：self-contained 单文件（免运行时，打开即用）
 - `..\dist\SHA256SUMS.txt`
 
 ## GUI
 
-`PCL2Patch.exe`（位于 `PCL2Patch-win-x64.zip` 内）是基于 **WPF + Fluent（WPF-UI）** 的图形界面，**免运行时**（self-contained，解压后双击即用）。
+`PCL2Patch.exe` 是基于 **WPF + Fluent（WPF-UI）** 的图形界面，**免运行时**（self-contained 单文件，打开即用，约 166 MB）。
 
-> 说明：WPF + WPF-UI 在 `PublishSingleFile` 模式下启动会崩溃（`0xe0434352`），
-> 因此发布为 self-contained 目录并打包 zip，而不是单文件 exe。
+> 若在某些受限环境中启动报 `0xe0434352`：这是 .NET 单文件宿主无法在 `%TEMP%` 下创建提取目录所致。
+> 设置环境变量 `DOTNET_BUNDLE_EXTRACT_BASE_DIR` 指向一个可写目录（如 `D:\PCL2PatchRuntime`）即可。
 
 1. 选择 **PCL2 程序**（官方 `Plain Craft Launcher 2.exe`）；
 2. 输出路径默认在同目录生成 `*_patched.exe`，可修改；
@@ -109,7 +108,7 @@ PEVerify.exe PCL2_patched.exe /nologo /il
 
 构建产物：
 
-- `PCL2Patch-win-x64.zip`：GUI，self-contained（免运行时，解压后双击 `PCL2Patch.exe`）
+- `PCL2Patch.exe`：GUI，self-contained 单文件（免运行时，打开即用）
 - `SHA256SUMS.txt`
 
 发布流程（在 GitHub 页面操作即可）：

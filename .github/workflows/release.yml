@@ -51,5 +51,5 @@ jobs:
         with:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
-            PCL2Patch-win-x64.zip
+            PCL2Patch.exe
             SHA256SUMS.txt

@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace PCL2Patch.Gui;
 
@@ -16,17 +15,19 @@ public partial class App : Application
         };
     }
 
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        Program.Log("OnStartup");
+        var window = new MainWindow();
+        Program.Log("MainWindow created");
+        window.Show();
+        Program.Log("MainWindow shown");
+    }
+
     static void Log(Exception? ex)
     {
         if (ex is null) return;
-        try
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, "crash.log");
-            File.AppendAllText(path, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex}\r\n\r\n");
-        }
-        catch
-        {
-            // 日志失败不影响主流程
-        }
+        Program.Log("UNHANDLED: " + ex);
     }
 }

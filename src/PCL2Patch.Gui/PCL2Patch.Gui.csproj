@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>PCL2Patch</AssemblyName>
     <RootNamespace>PCL2Patch.Gui</RootNamespace>
+    <StartupObject>PCL2Patch.Gui.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
