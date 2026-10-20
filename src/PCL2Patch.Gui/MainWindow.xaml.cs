@@ -143,6 +143,10 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
 
         SaveThemePreference(index switch { 0 => "light", 1 => "dark", _ => "system" });
+
+        // 主题切换后强制重绘，避免背景/文字残留旧主题
+        InvalidateVisual();
+        UpdateLayout();
     }
 
     private static string ReadThemePreference()

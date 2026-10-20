@@ -8,7 +8,6 @@
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="None"
-                 Background="{DynamicResource ApplicationBackgroundBrush}"
                  AllowDrop="True"
                  DragOver="Window_DragOver"
                  Drop="Window_Drop">
@@ -36,15 +35,15 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                    <TextBlock x:Name="TitleText" Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock x:Name="TitleText" Text="PCL2 限制解除补丁" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     <TextBlock x:Name="DescText" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                TextWrapping="Wrap" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,0,0,0">
-                    <TextBlock x:Name="ThemeLabel" Text="主题" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBlock x:Name="ThemeLabel" Text="主题" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     <ComboBox x:Name="ThemeBox" Width="118" SelectionChanged="ThemeBox_SelectionChanged" />
-                    <TextBlock x:Name="LanguageLabel" Text="语言" VerticalAlignment="Center" Margin="12,0,8,0" />
+                    <TextBlock x:Name="LanguageLabel" Text="语言" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     <ComboBox x:Name="LanguageBox" Width="96" SelectionChanged="LanguageBox_SelectionChanged" />
                 </StackPanel>
             </Grid>
@@ -55,7 +54,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="ProgramLabel" Grid.Column="0" Text="PCL2 程序" VerticalAlignment="Center" />
+                <TextBlock x:Name="ProgramLabel" Grid.Column="0" Text="PCL2 程序" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 <ui:TextBox x:Name="OfficialBox" Grid.Column="1" Margin="0,0,8,0" />
                 <ui:Button x:Name="BrowseProgramButton" Grid.Column="2" Content="浏览…" Click="BrowseOfficial_Click" />
             </Grid>
