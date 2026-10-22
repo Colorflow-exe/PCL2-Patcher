@@ -6,7 +6,6 @@ on:
       - "src/**"
       - ".github/workflows/**"
       - "scripts/**"
-      - "README.md"
   pull_request:
   workflow_dispatch:
 
