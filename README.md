@@ -17,3 +17,7 @@
 | 5 | `PCL.ModModpack::ModpackInstall(string,string,string)` | 恢复完整安装分支（搬运 330 条指令，含 CurseForge / HMCL / MMC / MCBBS / Modrinth 等） |
 
 详细 IL 说明见 [docs/patch-notes.md](docs/patch-notes.md)。
+
+## 声明
+
+本项目全部代码由 DeepSeek 生成。
