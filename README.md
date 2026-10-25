@@ -1,4 +1,4 @@
-﻿# PCL2Patcher
+﻿# PCL2-Patcher
 
 直接修改官方 **Plain Craft Launcher 2** 的程序集 IL，解除 `RestrictMcDownload` 常量带来的下载 / 安装限制。不重新编译 PCL2，其余功能与官方版一致。
 

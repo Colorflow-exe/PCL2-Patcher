@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Win32;
 
-namespace PCL2Patcher.Gui;
+namespace PCL2_Patcher.Gui;
 
 public enum AppLanguage
 {
@@ -80,7 +80,7 @@ public static class Loc
     {
         try
         {
-            using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patcher");
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2-Patcher");
             Language = (key?.GetValue("Language") as string) switch
             {
                 "zh" => AppLanguage.Chinese,
@@ -99,7 +99,7 @@ public static class Loc
         Language = language;
         try
         {
-            using var key = Registry.CurrentUser.CreateSubKey(@"Software\PCL2Patcher");
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\PCL2-Patcher");
             key?.SetValue("Language", language switch
             {
                 AppLanguage.Chinese => "zh",

@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using PCL2Patcher.Core;
+using PCL2_Patcher.Core;
 using Wpf.Ui.Appearance;
 
-namespace PCL2Patcher.Gui;
+namespace PCL2_Patcher.Gui;
 
 public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 {
@@ -21,7 +21,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         _initializing = true;
         InitializeComponent();
 
-        Title = $"PCL2Patcher v{typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}";
+        Title = $"PCL2-Patcher v{typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}";
         AppTitleBar.Title = Title;
 
         Loc.Load();
@@ -166,7 +166,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     private static string ReadThemePreference()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2Patcher");
+        using var key = Registry.CurrentUser.OpenSubKey(@"Software\PCL2-Patcher");
         return key?.GetValue("Theme") as string ?? "system";
     }
 
@@ -174,7 +174,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         try
         {
-            using var key = Registry.CurrentUser.CreateSubKey(@"Software\PCL2Patcher");
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\PCL2-Patcher");
             key?.SetValue("Theme", value);
         }
         catch

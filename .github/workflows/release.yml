@@ -44,12 +44,12 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: PCL2Patcher-win-x64
+          name: PCL2-Patcher-win-x64
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
-            PCL2Patcher.exe
+            PCL2-Patcher.exe
             SHA-512.txt

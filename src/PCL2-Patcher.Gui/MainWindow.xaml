@@ -1,8 +1,8 @@
-﻿<ui:FluentWindow x:Class="PCL2Patcher.Gui.MainWindow"
+﻿<ui:FluentWindow x:Class="PCL2_Patcher.Gui.MainWindow"
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-                 Title="PCL2Patcher"
+                 Title="PCL2-Patcher"
                  Width="840" Height="560"
                  MinWidth="720" MinHeight="480"
                  WindowStartupLocation="CenterScreen"
@@ -17,7 +17,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="PCL2Patcher" ShowMaximize="False" />
+        <ui:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="PCL2-Patcher" ShowMaximize="False" />
 
         <Grid Grid.Row="1" Margin="28,12,28,24">
             <Grid.RowDefinitions>
