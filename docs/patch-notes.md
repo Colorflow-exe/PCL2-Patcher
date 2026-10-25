@@ -117,12 +117,14 @@ callvirt    UIElementCollection::Add
 pop
 ```
 
-`Install_Click(MyListItem, EventArgs)` 方法本身仍存在（199 条指令），并且官方版里还存在
+`Install_Click(MyListItem, EventArgs)` 方法本身仍存在（199 条指令），官方版里还有
 适配它的 lambda `_Lambda$__R18-5(Object, MouseButtonEventArgs)`（6 条指令，内部转调 `Install_Click`）。
 
-修改：把循环内的 `ldftn Save_Click` 替换为 `ldftn _Lambda$__R18-5`。这样点击列表项走安装流程。
+修改：从参考程序集整体搬运该方法体（196 条指令），恢复源码里的分支：整合包（`TargetResourceType = ModPack`）用
+`_Lambda$__R18-5`（点击安装）+ `Save_Click`（图标按钮保存）；其他类型（模组等）仍用 `Save_Click` + `ldnull`。
 
-副作用：右侧图标按钮参数仍是 `ldnull`（无保存按钮）——与"直接安装"的旧版行为一致。
+注意：只把 `ldftn Save_Click` 换成 `_Lambda$__R18-5` 会让所有类型都变成"安装"，模组点击也会弹安装流程；
+搬运完整方法体后只有整合包走安装，模组保持原来的保存行为。
 
 ---
 

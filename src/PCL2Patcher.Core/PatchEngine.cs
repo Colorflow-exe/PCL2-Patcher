@@ -22,7 +22,7 @@ public static class PatchEngine
 
         using var reference = LoadReferenceAssembly();
         CloneMethod(reference, module, "PCL.ModModpack", "ModpackInstall", 0, log);
-        PatchInstallClick(module, log);
+        CloneMethod(reference, module, "PCL.PageDownloadResourceDetail", "InitializeStackResourceVersions", 1, log, "[4/5] 整合包版本点击 -> Install_Click");
         CloneMethod(reference, module, "PCL.ModModpack", "ModpackInstall", 3, log);
 
         official.Write(outputPath);
@@ -30,7 +30,7 @@ public static class PatchEngine
     }
 
     /// <summary>
-    /// 就地修补：先把原程序备份到工具数据目录，再用修补结果覆盖原路径。
+    /// 就地修补：先把原程序备份到同目录（隐藏文件），再用修补结果覆盖原路径。
     /// 返回备份文件路径；任何一步失败都会回滚。
     /// </summary>
     public static string ApplyInPlace(string officialPath, Action<string>? log = null)
@@ -49,8 +49,7 @@ public static class PatchEngine
         {
             Apply(fullPath, temp, log);
 
-            // 备份到工具数据目录（不在 PCL2 目录产生额外文件）
-            Directory.CreateDirectory(BackupDirectory);
+            // 备份到同目录（隐藏文件）
             File.Copy(fullPath, backup, true);
             File.Delete(fullPath);
 
@@ -63,6 +62,7 @@ public static class PatchEngine
                 File.Copy(backup, fullPath, true);
                 throw;
             }
+            try { File.SetAttributes(backup, File.GetAttributes(backup) | FileAttributes.Hidden); } catch { }
             return backup;
         }
         catch
@@ -93,75 +93,39 @@ public static class PatchEngine
         return field?.Constant is string value && value == "Official";
     }
 
-    static string? _backupDirectory;
-
-    /// <summary>备份目录：工具数据目录，不在 PCL2 目录产生额外文件；不可写时回退到临时目录。</summary>
-    static string BackupDirectory
-    {
-        get
-        {
-            if (_backupDirectory is not null) return _backupDirectory;
-
-            var candidates = new[]
-            {
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PCL2Patcher", "backup"),
-                Path.Combine(Path.GetTempPath(), "PCL2Patcher", "backup"),
-                Path.Combine(AppContext.BaseDirectory, "backup")
-            };
-
-            foreach (var dir in candidates)
-            {
-                try
-                {
-                    Directory.CreateDirectory(dir);
-                    // 探测真实可写性：能建目录不代表能写文件
-                    var probe = Path.Combine(dir, ".write-test");
-                    File.WriteAllText(probe, "x");
-                    File.Delete(probe);
-                    _backupDirectory = dir;
-                    return dir;
-                }
-                catch
-                {
-                    // 尝试下一个位置
-                }
-            }
-
-            throw new Exception("无法创建备份目录");
-        }
-    }
-
     static string GetBackupPath(string officialPath)
     {
         var fullPath = Path.GetFullPath(officialPath);
+        var dir = Path.GetDirectoryName(fullPath)!;
         var name = Path.GetFileNameWithoutExtension(fullPath);
         var ext = Path.GetExtension(fullPath);
-        var key = ShortHash(fullPath.ToLowerInvariant());
-        return Path.Combine(BackupDirectory, $"{name}_{key}{ext}");
+        var candidate = Path.Combine(dir, $"{name}_backup{ext}");
+        var index = 1;
+        while (File.Exists(candidate))
+            candidate = Path.Combine(dir, $"{name}_backup_{index++}{ext}");
+        return candidate;
     }
 
-    static string ShortHash(string text)
-    {
-        using var sha = System.Security.Cryptography.SHA256.Create();
-        var bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(text));
-        return BitConverter.ToString(bytes, 0, 4).Replace("-", "").ToLowerInvariant();
-    }
-
-    /// <summary>查找原版备份（位于工具数据目录）。</summary>
+    /// <summary>查找原版备份（与目标同目录，隐藏文件）。</summary>
     public static string? FindBackup(string officialPath)
     {
-        try
+        var fullPath = Path.GetFullPath(officialPath);
+        var dir = Path.GetDirectoryName(fullPath)!;
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        var ext = Path.GetExtension(fullPath);
+
+        var direct = Path.Combine(dir, $"{name}_backup{ext}");
+        if (File.Exists(direct)) return direct;
+
+        for (var i = 1; i < 1000; i++)
         {
-            var path = GetBackupPath(officialPath);
-            return File.Exists(path) ? path : null;
+            var candidate = Path.Combine(dir, $"{name}_backup_{i}{ext}");
+            if (File.Exists(candidate)) return candidate;
         }
-        catch
-        {
-            return null;
-        }
+        return null;
     }
 
-    /// <summary>撤销修补：从工具数据目录的备份恢复原版（覆盖当前补丁版）。</summary>
+    /// <summary>撤销修补：从同目录备份恢复原版（覆盖当前补丁版）。</summary>
     public static void Restore(string officialPath, Action<string>? log = null)
     {
         log ??= _ => { };
@@ -184,6 +148,7 @@ public static class PatchEngine
 
         try { File.Delete(staging); } catch { }
         try { File.Delete(backup); } catch { }
+        try { File.SetAttributes(fullPath, File.GetAttributes(fullPath) & ~FileAttributes.Hidden); } catch { }
         log($"已恢复原版: {fullPath}");
     }
     /// <summary>读取内置的参考程序集（RestrictMcDownload = False 的编译版，gzip 压缩）。</summary>
@@ -312,25 +277,8 @@ public static class PatchEngine
     }
 
     // 4. 资源详情页：点击版本列表项 -> 安装（Install_Click）
-    static void PatchInstallClick(ModuleDefinition m, Action<string> log)
-    {
-        var type = FindType(m, "PCL.PageDownloadResourceDetail");
-        var method = type.Methods.First(x => x.Name == "InitializeStackResourceVersions");
-        var lambda = type.Methods.First(x => x.Name == "_Lambda$__R18-5");
-        var ins = method.Body.Instructions;
-
-        for (int i = 0; i < ins.Count; i++)
-            if (ins[i].OpCode == OpCodes.Ldftn && ins[i].Operand is MethodReference mr && mr.Name == "Save_Click")
-            {
-                ins[i].Operand = m.ImportReference(lambda);
-                log("[4/5] 整合包版本列表点击 -> Install_Click");
-                return;
-            }
-        throw new Exception("InitializeStackResourceVersions: 未找到 Save_Click 引用");
-    }
-
     // 3/5. 从参考程序集搬运整个方法体（被常量优化删除的安装逻辑）
-    static void CloneMethod(AssemblyDefinition srcAsm, ModuleDefinition dstModule, string typeName, string methodName, int paramCount, Action<string> log)
+    static void CloneMethod(AssemblyDefinition srcAsm, ModuleDefinition dstModule, string typeName, string methodName, int paramCount, Action<string> log, string? logLabel = null)
     {
         var srcType = FindType(srcAsm.MainModule, typeName);
         var dstType = FindType(dstModule, typeName);
@@ -379,7 +327,7 @@ public static class PatchEngine
                 CatchType = h.CatchType is null ? null : dstModule.ImportReference(h.CatchType)
             });
 
-        log($"[{(paramCount == 0 ? "3/5" : "5/5")}] 搬运 {typeName}::{methodName}({paramCount} 参数) 共 {srcBody.Instructions.Count} 条指令");
+        log(logLabel ?? $"[{(paramCount == 0 ? "3/5" : "5/5")}] 搬运 {typeName}::{methodName}({paramCount} 参数) 共 {srcBody.Instructions.Count} 条指令");
     }
 
     /// <summary>写回时若引用程序集不在本地（如 PCLCS/MeloongCore），优先从内置资源加载，再退化为空程序集。</summary>
