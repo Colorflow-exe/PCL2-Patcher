@@ -1,4 +1,4 @@
-﻿name: _step.build
+name: _step.build
 
 on:
   workflow_call:
@@ -29,8 +29,8 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item src/PCL2Patcher.Gui/bin/Release/net48/PCL2Patcher.exe PCL2Patcher.exe
-          "$((Get-FileHash PCL2Patcher.exe -Algorithm SHA256).Hash.ToLower())  PCL2Patcher.exe" | Set-Content -Encoding ascii SHA256SUMS.txt
-          Get-Content SHA256SUMS.txt
+          "$((Get-FileHash PCL2Patcher.exe -Algorithm SHA512).Hash.ToLower())  PCL2Patcher.exe" | Set-Content -Encoding ascii SHA-512
+          Get-Content SHA-512
           Get-ChildItem PCL2Patcher.exe | Format-Table Name, Length
 
       - name: Upload artifacts
@@ -39,4 +39,4 @@ jobs:
           name: PCL2Patcher-win-x64
           path: |
             PCL2Patcher.exe
-            SHA256SUMS.txt
+            SHA-512

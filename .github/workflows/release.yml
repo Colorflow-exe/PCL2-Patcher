@@ -1,4 +1,4 @@
-﻿name: Release
+name: Release
 
 # published: 发布 Release 后自动把构建产物挂上去
 # dispatch: 手动为指定 tag 的 Release 追加产物
@@ -52,4 +52,4 @@ jobs:
           tag_name: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.target_release_tag }}
           files: |
             PCL2Patcher.exe
-            SHA256SUMS.txt
+            SHA-512

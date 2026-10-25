@@ -11,13 +11,13 @@ try {
 
     $built = Join-Path $root "src\PCL2Patcher.Gui\bin\Release\net48\PCL2Patcher.exe"
     Copy-Item $built (Join-Path $dist "PCL2Patcher.exe") -Force
-    $hash = (Get-FileHash (Join-Path $dist "PCL2Patcher.exe") -Algorithm SHA256).Hash.ToLower()
-    "$hash  PCL2Patcher.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA256SUMS.txt")
+    $hash = (Get-FileHash (Join-Path $dist "PCL2Patcher.exe") -Algorithm SHA512).Hash.ToLower()
+    "$hash  PCL2Patcher.exe" | Set-Content -Encoding ascii (Join-Path $dist "SHA-512")
 
     Write-Host ""
     Write-Host "已生成：$dist"
     Get-ChildItem (Join-Path $dist "PCL2Patcher.exe") | Format-Table Name, Length
-    Write-Host "SHA256: $hash"
+    Write-Host "SHA-512: $hash"
 }
 finally {
     Pop-Location

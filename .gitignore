@@ -22,7 +22,7 @@ PCL2_*/
 .vs/
 
 # 生成的校验和
-SHA256SUMS.txt
+SHA-512
 # 工具内置的引用程序集（补丁时用于元数据解析）
 !src/PCL2Patcher.Core/Resources/*.dll
 dist/
